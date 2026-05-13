@@ -1,0 +1,8 @@
+httpx
+psutil
+uvicorn
+pywebview
+fastapi
+pydantic
+mcstatus
+python-multipart

@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mero – Minecraft Hero</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body>
+
+    <!-- Empty state: shown when no servers exist -->
+    <div id="empty-state" class="empty-state" style="display:none">
+        <div class="empty-state-inner">
+            <img src="/static/logo.png" width="64" height="64"
+                style="margin-bottom:18px; border-radius:12px; object-fit:cover;">
+            <h1 style="font-size:2rem; font-weight:800; margin-bottom:6px;">Mero</h1>
+            <p style="color:rgba(239, 68, 68, 0.7); font-size:1rem; margin-bottom:28px;">You have no servers created</p>
+            <button class="btn primary" onclick="showCreateModal()" style="font-size:1rem; padding:12px 28px; gap:8px;">
+                <i data-lucide="plus-circle" style="width:20px;height:20px;"></i> Create Server
+            </button>
+        </div>
+    </div>
+
+    <div class="app-container" id="app-container">
+
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">
+                <img src="/static/logo.png" width="30" height="30" style="border-radius:6px; object-fit:cover;">
+                <h1>Mero</h1>
+            </div>
+            <div class="sidebar-label">NAVIGATION</div>
+            <nav>
+                <ul>
+                    <li class="active" id="nav-dashboard" onclick="switchTab('dashboard')"><i
+                            data-lucide="layout-dashboard" class="icon"></i>Dashboard</li>
+                    <li id="nav-console" onclick="switchTab('console')"><i data-lucide="terminal"
+                            class="icon"></i>Console</li>
+                    <li id="nav-files" onclick="switchTab('files')"><i data-lucide="folder" class="icon"></i>File
+                        Manager</li>
+                    <li id="nav-modrinth" onclick="switchTab('modrinth')"><i data-lucide="blocks" class="icon"></i>Mods
+                        & Plugins</li>
+                    <li id="nav-players" onclick="switchTab('players')"><i data-lucide="users" class="icon"></i>Player
+                        Manager</li>
+                    <li id="nav-backups" onclick="switchTab('backups')"><i data-lucide="archive"
+                            class="icon"></i>Backups</li>
+                    <li id="nav-settings" onclick="switchTab('settings')"><i data-lucide="settings"
+                            class="icon"></i>Settings</li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Main -->
+        <main class="main-content">
+
+            <!-- Header -->
+            <header class="global-header">
+                <div class="server-selector-container" style="position: relative;">
+                    <select id="global-server-select" class="glass-input server-selector" onchange="onServerChange()">
+                        <option value="">Select a server…</option>
+                    </select>
+                    <button class="btn primary small" onclick="showCreateModal()">+ Create</button>
+                    <button class="btn danger outline small" onclick="deleteCurrentServer()" id="btn-delete-server"
+                        style="display:none">🗑 Delete</button>
+                    <button id="btn-global-downloads" class="btn outline" onclick="toggleDownloadsPanel()"
+                        title="Downloads"
+                        style="padding:6px 8px;display:inline-flex;align-items:center;justify-content:center;"><i
+                            data-lucide="download" style="width:16px;height:16px;"></i></button>
+
+                    <div id="downloads-panel"
+                        style="display:none; position: absolute; top: 110%; right: 0; width: 320px; max-height: 400px; overflow-y: auto; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.5); padding: 12px; flex-direction: column; gap: 8px;">
+                        <div
+                            style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:8px; margin-bottom:4px;">
+                            <span style="font-weight:600; color:var(--text);">Active Downloads</span>
+                            <button class="btn outline" onclick="toggleDownloadsPanel()"
+                                style="padding:5px 8px;display:inline-flex;align-items:center;justify-content:center;"><i
+                                    data-lucide="x" style="width:16px;height:16px;"></i></button>
+                        </div>
+                        <div id="downloads-list">
+                            <p class="text-muted" style="text-align:center; font-size:0.85rem;">No active downloads.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Button row: START (shown when stopped/starting) -->
+                <div id="btn-row-start" class="power-row" style="display:flex">
+                    <button id="btn-start" class="btn success" onclick="startServer()" disabled><i data-lucide="play"
+                            style="width:16px;height:16px;"></i> Start</button>
+                </div>
+                <!-- Button row: STOP / RESTART / KILL (shown when running) -->
+                <div id="btn-row-controls" class="power-row" style="display:none">
+                    <button class="btn danger outline" onclick="stopServer()"><i data-lucide="square"
+                            style="width:16px;height:16px;"></i> Stop</button>
+                    <button class="btn warning outline" onclick="restartServer()"><i data-lucide="rotate-cw"
+                            style="width:16px;height:16px;"></i> Restart</button>
+                    <button class="btn kill" onclick="killServer()"><i data-lucide="zap"
+                            style="width:16px;height:16px;"></i> Kill</button>
+                </div>
+            </header>
+
+            <div id="no-server-warning" class="warning-box">
+                Please create or select a server to view the dashboard.
+            </div>
+
+            <div id="content-area" style="display:none">
+
+                <!-- ── Dashboard ──────────────────────────────────────────── -->
+                <div id="tab-dashboard" class="tab-content active">
+                    <div
+                        style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom: 24px;">
+                        <div style="display:flex; align-items:center; gap: 16px;">
+                            <div class="server-icon-container" style="position:relative; cursor:pointer;"
+                                onclick="document.getElementById('server-icon-upload').click()">
+                                <img id="dash-server-icon" src="/static/logo.png"
+                                    style="width:64px;height:64px;border-radius:8px;object-fit:cover;border:1px solid var(--border);"
+                                    onerror="this.src='/static/logo.png'; this.onerror=null;">
+                                <div style="position:absolute;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity 0.2s;border-radius:8px;color:#fff;font-size:0.75rem;"
+                                    onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0">Edit</div>
+                            </div>
+                            <input type="file" id="server-icon-upload" style="display:none" accept="image/png"
+                                onchange="uploadServerIcon(event)">
+                            <div>
+                                <h2 class="page-title" id="dash-title">Dashboard</h2>
+                                <div class="page-subtitle" id="stat-status"><span class="badge stopped">● Offline</span>
+                                </div>
+                            </div>
+                        </div>
+                        <ul
+                            style="list-style: none; display: flex; gap: 16px; font-weight: 600; padding: 0; color: var(--muted); font-size: 0.85rem; margin-bottom: 8px;">
+                            <li><span style="color:var(--danger)">●</span> Mods: <span id="dash-mods">0</span></li>
+                            <li><span style="color:var(--blue)">●</span> Resource packs: <span id="dash-rp">0</span>
+                            </li>
+                            <li><span style="color:var(--success)">●</span> Shaders: <span id="dash-sp">0</span></li>
+                        </ul>
+                    </div>
+
+
+                    <div class="metrics-grid">
+                        <div class="metric-card">
+                            <div class="metric-header"><i data-lucide="cpu" style="width:14px;height:14px;"></i>CPU
+                                Usage</div>
+                            <div class="metric-value" id="stat-cpu">—</div>
+                            <div class="metric-sub" id="stat-cpu-sub">of 200% allocated</div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="bar-cpu" style="width:0"></div>
+                            </div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-header"><i data-lucide="memory-stick"
+                                    style="width:14px;height:14px;"></i>Memory</div>
+                            <div class="metric-value" id="stat-mem">—</div>
+                            <div class="metric-sub" id="stat-mem-sub">of 6 GB allocated</div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="bar-mem" style="width:0"></div>
+                            </div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-header"><i data-lucide="hard-drive"
+                                    style="width:14px;height:14px;"></i>Disk</div>
+                            <div class="metric-value" id="stat-disk">—</div>
+                            <div class="metric-sub" id="stat-disk-sub">Unlimited storage</div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="bar-disk" style="width:4%"></div>
+                            </div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-header"><i data-lucide="clock" style="width:14px;height:14px;"></i>Uptime
+                            </div>
+                            <div class="metric-value" id="stat-uptime">—</div>
+                            <div class="metric-sub">Since last start</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-header"><i data-lucide="users"
+                                    style="width:14px;height:14px;"></i>Players</div>
+                            <div class="metric-value" id="stat-players">—</div>
+                            <div class="metric-sub" id="stat-players-sub">0/0 online</div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="bar-players" style="width:0"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-panels">
+                        <div class="panel" style="flex:1;">
+                            <h3>Server Plan</h3>
+                            <p class="text-muted" style="margin-bottom:16px">Your local hardware</p>
+                            <div class="plan-card">
+                                <div class="plan-icon">HP</div>
+                                <div>
+                                    <h4 style="color:var(--success)">Victus Local</h4>
+                                    <div class="plan-specs"><span>💻 200% CPU</span><span>🧠 6 GB RAM</span><span>💾
+                                            Unlimited</span></div>
+                                </div>
+                            </div>
+                            <div class="tunnel-box" id="tunnel-info-box" style="margin-bottom: 8px;"></div>
+                            <div class="tunnel-box" id="playit-setup-box">
+                                <h4 style="margin:0 0 8px 0; font-size:0.9rem;">Playit.gg Public IP</h4>
+                                <p class="text-muted" style="margin-bottom:8px; font-size:0.8rem;">To get a permanent
+                                    public IP, enter your playit.gg Secret Key here.</p>
+                                <div style="display:flex; gap:8px;">
+                                    <input type="password" id="playit-key-input" class="glass-input"
+                                        placeholder="Secret Key (sk-...)">
+                                    <button class="btn success small" onclick="savePlayitKey()">Connect</button>
+                                </div>
+                            </div>
+                            <div class="tunnel-box active" id="local-ip-box"
+                                style="display:none; justify-content:space-between; align-items:center;">
+                                <div><i data-lucide="home" style="width:14px;height:14px;"></i> Local IP: <b
+                                        id="local-ip-text"></b></div>
+                                <button class="btn outline small" onclick="copyIp('local-ip-text')" title="Copy IP"><i
+                                        data-lucide="clipboard" style="width:14px;height:14px;"></i></button>
+                            </div>
+                        </div>
+                        <div class="panel" style="flex:1;">
+                            <div style="display:flex;justify-content:space-between;align-items:center">
+                                <h3>MOTD</h3>
+                                <button class="btn success small" onclick="saveMotd(this)">Save</button>
+                            </div>
+                            <p class="text-muted" style="margin-bottom:14px">Customize your server description</p>
+                            <div class="motd-preview" style="margin-bottom:8px; padding:10px;">
+                                <div class="motd-line1" id="dash-motd-title">A Minecraft Server</div>
+                                <div class="motd-line2" id="motd-preview-text">Welcome to Mero!</div>
+                            </div>
+                            <label class="field-label" style="margin-top:14px">Edit MOTD</label>
+                            <div id="motd-color-bar"></div>
+                            <input type="text" id="motd-input" class="glass-input"
+                                style="font-family:monospace;margin-top:4px" onkeyup="updateMotdPreview()">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ── Console ────────────────────────────────────────────── -->
+                <div id="tab-console" class="tab-content" style="display:none">
+                    <h2 class="page-title">Console</h2>
+                    <p class="page-subtitle">Live server output, command input, and in-game chat</p>
+
+                    <div class="console-layout">
+                        <!-- Left: Log viewer + command input -->
+                        <div class="console-left">
+                            <div class="console-wrapper" style="position:relative;" id="console-wrapper-main">
+                                <!-- Custom Context Menu for Console -->
+                                <div id="console-context-menu" class="glass-panel"
+                                    style="display:none; position:absolute; z-index:100; padding:8px; border-radius:8px; min-width:120px; box-shadow:0 8px 16px rgba(0,0,0,0.5);">
+                                    <button class="btn ghost small"
+                                        style="width:100%; text-align:left; justify-content:flex-start;"
+                                        onclick="copyConsoleLogs()"><i data-lucide="copy"
+                                            style="width:14px;height:14px; margin-right:6px;"></i> Copy All</button>
+                                    <button class="btn ghost small"
+                                        style="width:100%; text-align:left; justify-content:flex-start; color:var(--danger)"
+                                        onclick="clearConsoleLogs()"><i data-lucide="trash-2"
+                                            style="width:14px;height:14px; margin-right:6px;"></i> Clear (cls)</button>
+                                </div>
+                                <!-- Offline overlay -->
+                                <div id="console-offline" class="console-offline">
+                                    <span style="display:flex; align-items:center; gap:6px;"><i data-lucide="square"
+                                            style="width:16px;height:16px;"></i> Server is offline</span>
+                                </div>
+                                <div class="console-logs" id="console-logs"></div>
+                                <div class="console-input-area">
+                                    <span class="console-prompt">$</span>
+                                    <input type="text" id="console-input" class="glass-input"
+                                        placeholder="Enter server command…" disabled
+                                        onkeypress="if(event.key==='Enter')sendConsoleCommand()">
+                                    <button id="console-send" class="btn primary" disabled
+                                        onclick="sendConsoleCommand()">Send</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right: Chat sender -->
+                        <div class="console-right">
+                            <div class="panel chat-panel">
+                                <h3 style="display:flex; align-items:center; gap:6px;"><i data-lucide="message-square"
+                                        style="width:20px;height:20px;"></i> In-Game Chat</h3>
+                                <p class="text-muted" style="margin-bottom:16px;font-size:.82rem">Send a message into
+                                    the server</p>
+
+                                <div class="form-group">
+                                    <label>Send as player (optional)</label>
+                                    <input type="text" id="chat-player" class="glass-input"
+                                        placeholder="Username (blank = announcement)">
+                                </div>
+                                <div class="form-group">
+                                    <label>Message</label>
+                                    <div id="chat-color-bar"></div>
+                                    <textarea id="chat-message" class="glass-input" rows="3"
+                                        placeholder="Type your message…" disabled
+                                        onkeypress="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChat()}"></textarea>
+                                </div>
+                                <button id="chat-send" class="btn primary" style="width:100%" disabled
+                                    onclick="sendChat()">
+                                    Send Message
+                                </button>
+
+                                <div class="chat-tips">
+                                    <p><i data-lucide="lightbulb"
+                                            style="width:14px;height:14px; vertical-align:text-bottom; margin-right:4px;"></i>
+                                        <b>No username</b> → broadcasts via <code>tellraw @a</code> (no [Server] prefix)
+                                    </p>
+                                    <p><i data-lucide="lightbulb"
+                                            style="width:14px;height:14px; vertical-align:text-bottom; margin-right:4px;"></i>
+                                        <b>With username</b> → uses <code>tellraw</code> to fake a chat message</p>
+                                    <p><i data-lucide="lightbulb"
+                                            style="width:14px;height:14px; vertical-align:text-bottom; margin-right:4px;"></i>
+                                        Use <b>§c</b> red, <b>§a</b> green, <b>§e</b> yellow, <b>§l</b> bold — or click
+                                        the colors above</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ── File Manager ───────────────────────────────────────── -->
+                <div id="tab-files" class="tab-content" style="display:none">
+                    <div class="fm-header">
+                        <div>
+                            <h2 class="page-title">File Manager</h2>
+                            <p class="page-subtitle">Browse and manage server files</p>
+                            <input type="text" id="fm-search" class="glass-input" placeholder="Search files…"
+                                style="width:200px; margin-top:8px" oninput="filterFiles()">
+                        </div>
+                        <div class="fm-actions">
+                            <button class="btn outline small" id="fm-upload-btn"><i data-lucide="upload"
+                                    style="width:14px;height:14px;"></i> Upload</button>
+                            <button class="btn outline small" onclick="createFolder()"><i data-lucide="folder-plus"
+                                    style="width:14px;height:14px;"></i> New Folder</button>
+                            <button class="btn outline small" onclick="fetchFiles()"><i data-lucide="rotate-cw"
+                                    style="width:14px;height:14px;"></i> Refresh</button>
+                            <button class="btn danger outline small" onclick="deleteSelected()"><i data-lucide="trash-2"
+                                    style="width:14px;height:14px;"></i> Delete Selected</button>
+                        </div>
+                    </div>
+
+                    <div id="dropzone" class="dropzone"
+                        style="display:flex; justify-content:center; align-items:center; gap:8px;">
+                        <i data-lucide="folder-down" style="width:20px;height:20px;"></i> Drag &amp; drop files here to
+                        upload into current folder
+                    </div>
+
+                    <div class="fm-breadcrumb-row">
+                        <span id="fm-breadcrumb" class="fm-breadcrumb"></span>
+                    </div>
+                    <div class="fm-table-wrap">
+                        <table class="fm-table">
+                            <thead>
+                                <tr>
+                                    <th style="width:36px"><input type="checkbox" id="fm-select-all"
+                                            onchange="toggleSelectAll(this.checked)"></th>
+                                    <th>Name</th>
+                                    <th style="width:100px">Size</th>
+                                    <th style="width:140px">Modified</th>
+                                    <th style="width:90px"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="fm-tbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- ── Modrinth ───────────────────────────────────────────── -->
+                <div id="tab-modrinth" class="tab-content" style="display:none">
+                    <h2 class="page-title">Modrinth Installer</h2>
+                    <p class="page-subtitle">Search and install content directly from Modrinth</p>
+
+                    <div class="mod-tabs">
+                        <span id="mt-available" class="mod-tab active"
+                            onclick="switchModTab('available')">Available</span>
+                        <span id="mt-installed" class="mod-tab" onclick="switchModTab('installed')">Installed</span>
+                    </div>
+
+                    <div id="mod-view-available">
+                        <div class="search-bar">
+                            <select id="mod-type-filter" class="glass-input" style="width:160px;flex-shrink:0"
+                                onchange="searchModrinth()">
+                                <option value="mod">Mods</option>
+                                <option value="resourcepack">Resource Packs</option>
+                                <option value="shader">Shaders</option>
+                            </select>
+                            <input type="text" id="mod-search-input" class="glass-input" placeholder="Search Modrinth…"
+                                oninput="debounceSearchModrinth()">
+                            <button class="btn primary" onclick="searchModrinth()"><i data-lucide="search"
+                                    style="width:16px;height:16px;"></i> Search</button>
+                        </div>
+                        <div id="mod-results" class="results-grid">
+                            <p class="text-muted">Search to browse Modrinth.</p>
+                        </div>
+                    </div>
+
+                    <div id="mod-view-installed" style="display:none">
+                        <div class="search-bar">
+                            <select id="mod-installed-type-filter" class="glass-input" style="width:160px;flex-shrink:0"
+                                onchange="filterInstalledMods()">
+                                <option value="all">All Content</option>
+                                <option value="mod">Mods</option>
+                                <option value="plugin">Plugins</option>
+                                <option value="resourcepack">Resource Packs</option>
+                                <option value="shader">Shaders</option>
+                            </select>
+                            <input type="text" id="mod-installed-search-input" class="glass-input"
+                                placeholder="Search installed content…" oninput="filterInstalledMods()">
+                            <button class="btn primary" onclick="fetchInstalledMods()"><i data-lucide="refresh-cw"
+                                    style="width:16px;height:16px;"></i> Refresh</button>
+                        </div>
+                        <div id="installed-mod-results" class="results-grid">
+                            <p class="text-muted">Loading...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ── Settings ──────────────────────────────────────── -->
+                <div id="tab-settings" class="tab-content" style="display:none">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px">
+                        <div>
+                            <h2 class="page-title">Settings</h2>
+                            <p class="page-subtitle">Visual <code>server.properties</code> editor &mdash; grouped by
+                                category</p>
+                        </div>
+                        <button class="btn success" onclick="saveSettings(this)"><i data-lucide="save"
+                                style="width:16px;height:16px"></i> Save Configuration</button>
+                    </div>
+
+                    <!-- Category: Server Identity -->
+                    <div class="settings-category">
+                        <div class="settings-category-header"><i data-lucide="server"
+                                style="width:16px;height:16px"></i> Server Identity</div>
+                        <div class="settings-fields" style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
+                            <div class="form-group">
+                                <label class="cfg-label">Server Display Name <span class="info-tip"
+                                        data-tip="The formatted name of the server displayed in the dashboard and server list.">i</span></label>
+                                <div class="motd-preview" style="margin-bottom:8px; padding:10px;">
+                                    <div class="motd-line1" id="settings-servername-preview">Awesome Server</div>
+                                </div>
+                                <div id="settings-servername-color-bar" style="margin-bottom:4px;"></div>
+                                <input type="text" id="cfg-display-name" class="glass-input"
+                                    style="font-family:monospace;"
+                                    onkeyup="const v = renderMcText(this.value); document.getElementById('settings-servername-preview').innerHTML = v; document.getElementById('settings-motd-title').innerHTML = v;">
+                            </div>
+                            <div class="form-group">
+                                <label class="cfg-label">MOTD <span class="info-tip"
+                                        data-tip="The description displayed under your server in the Minecraft server list.">i</span></label>
+                                <div class="motd-preview" style="margin-bottom:14px; margin-top:4px;">
+                                    <div class="motd-line1" id="settings-motd-title">A Minecraft Server</div>
+                                    <div class="motd-line2" id="motd-preview-text">Welcome to Mero!</div>
+                                </div>
+                                <div id="motd-color-bar" style="margin-bottom:4px;"></div>
+                                <input type="text" id="motd-input" class="glass-input" style="font-family:monospace;"
+                                    onkeyup="updateMotdPreview()">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Category: World & Generation -->
+                    <div class="settings-category">
+                        <div class="settings-category-header"><i data-lucide="globe" style="width:16px;height:16px"></i>
+                            World &amp; Generation</div>
+                        <div class="settings-fields">
+                            <div class="form-group">
+                                <label class="cfg-label">Level Name <span class="info-tip"
+                                        data-tip="The name of the world folder. Changing this will create or load a different world.">i</span></label>
+                                <input type="text" id="cfg-level-name" class="glass-input" value="world">
+                            </div>
+                            <div class="form-group">
+                                <label class="cfg-label">Level Type <span class="info-tip"
+                                        data-tip="Determines world generation type. FLAT = superflat, LARGE_BIOMES = bigger biomes, AMPLIFIED = extreme terrain.">i</span></label>
+                                <select id="cfg-level-type" class="glass-input">
+                                    <option value="minecraft:normal">Default</option>
+                                    <option value="minecraft:flat">Flat</option>
+                                    <option value="minecraft:large_biomes">Large Biomes</option>
+                                    <option value="minecraft:amplified">Amplified</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="cfg-label">Allow Nether <span class="info-tip"
+                                        data-tip="Allow players to travel to the Nether dimension via Nether portals.">i</span></label>
+                                <select id="cfg-allow-nether" class="glass-input">
+                                    <option value="true">Enabled</option>
+                                    <option value="false">Disabled</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="cfg-label">Generate Structures <span class="info-tip"
+                                        data-tip="Whether to generate villages, dungeons, temples, etc. during world generation.">i</span></label>
+                                <select id="cfg-generate-structures" class="glass-input">
+                                    <option value="true">Enabled</option>
+                                    <option value="false">Disabled</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="cfg-label">Max Build Height <span class="info-tip"
+                                        data-tip="The maximum height players can build up to. Values above 256 are ignored in older versions.">i</span></label>
+                                <input type="number" id="cfg-max-build-height" class="glass-input" value="256" min="1"
+                                    max="320">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Category: Gameplay & Rules -->
+                    <div class="settings-category">
+                        <div class="settings-category-header"><i data-lucide="swords"
+                                style="width:16px;height:16px"></i> Gameplay &amp; Rules</div>
+                        <div class="settings-fields">
+                            <div class="form-group">
+                                <label class="cfg-label">Difficulty <span class="info-tip"
+                                        data-tip="Sets the game difficulty. Peaceful removes hostile mobs. Hard makes mobs deal more damage and hunger depletes faster.">i</span></label>
+                                <select id="cfg-difficulty" class="glass-input">
+                                    <option value="peaceful">Peaceful</option>
+                                    <option value="easy">Easy</option>
+                                    <option value="normal">Normal</option>
+                                    <option value="hard">Hard</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="cfg-label">PVP <span class="info-tip"
+                                        data-tip="Enable or disable player-vs-player combat. When disabled, players cannot damage each other.">i</span></label>
+                                <select id="cfg-pvp" class="glass-input">
+                                    <option value="true">Enabled</option>
+                                    <option value="false">Disabled</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="cfg-label">Hardcore <span class="info-tip"
+                                        data-tip="In Hardcore mode, players are permanently banned from the server upon death. Difficulty is locked to Hard.">i</span></label>
+                                <select id="cfg-hardcore" class="glass-input">
+                                    <option value="false">Disabled</option>
+                                    <option value="true">Enabled</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="cfg-label">Allow Flight <span class="info-tip"
+                                        data-tip="Allows players to use flight in Survival mode if they have a mod or plugin that provides it. Does NOT enable creative flight.">i</span></label>
+                                <select id="cfg-allow-flight" class="glass-input">
+                                    <option value="false">Disabled</option>
+                                    <option value="true">Enabled</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="cfg-label">Spawn Protection <span class="info-tip"
+                                        data-tip="Radius (in blocks) around the world spawn point that only operators can build in. Set to 0 to disable.">i</span></label>
+                                <input type="number" id="cfg-spawn-protection" class="glass-input" value="16" min="0"
+                                    max="100">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Category: Performance & Limits -->
+                    <div class="settings-category">
+                        <div class="settings-category-header"><i data-lucide="cpu" style="width:16px;height:16px"></i>
+                            Performance &amp; Limits</div>
+                        <div class="settings-fields">
+                            <div class="form-group">
+                                <label class="cfg-label" style="display:flex;justify-content:space-between">RAM
+                                    Allocation <span class="info-tip"
+                                        data-tip="Amount of memory (in GB) allocated to this server. Requires restart.">i</span><span
+                                        id="cfg-ram-val" style="color:var(--primary);font-size:.82rem">4
+                                        GB</span></label>
+                                <input type="range" id="cfg-ram" class="glass-slider" min="1" max="8" value="4" step="1"
+                                    oninput="document.getElementById('cfg-ram-val').textContent=this.value + ' GB'">
+                            </div>
+                            <div class="form-group">
+                                <label class="cfg-label">Max Players <span class="info-tip"
+                                        data-tip="The maximum number of players that can be on the server at the same time.">i</span></label>
+                                <input type="number" id="cfg-max-players" class="glass-input" value="20" min="1"
+                                    max="1000">
+                            </div>
+                            <div class="form-group">
+                                <label class="cfg-label" style="display:flex;justify-content:space-between">View
+                                    Distance <span class="info-tip"
+                                        data-tip="How many chunks around each player the server sends. Higher = more RAM/CPU. Range: 2-32.">i</span><span
+                                        id="cfg-view-distance-val"
+                                        style="color:var(--primary);font-size:.82rem">10</span></label>
+                                <input type="range" id="cfg-view-distance" class="glass-slider" min="2" max="32"
+                                    value="10"
+                                    oninput="document.getElementById('cfg-view-distance-val').textContent=this.value">
+                            </div>
+                            <div class="form-group">
+                                <label class="cfg-label" style="display:flex;justify-content:space-between">Simulation
+                                    Distance <span class="info-tip"
+                                        data-tip="How many chunks around each player are ticked (redstone, mobs, crops, etc). Lower = better TPS. Range: 2-32.">i</span><span
+                                        id="cfg-sim-distance-val"
+                                        style="color:var(--primary);font-size:.82rem">10</span></label>
+                                <input type="range" id="cfg-simulation-distance" class="glass-slider" min="2" max="32"
+                                    value="10"
+                                    oninput="document.getElementById('cfg-sim-distance-val').textContent=this.value">
+                            </div>
+                            <div class="form-group">
+                                <label class="cfg-label">Max Tick Time <span class="info-tip"
+                                        data-tip="Max milliseconds a single tick can take before the server watchdog shuts it down. Default: 60000. Set to -1 to disable the watchdog.">i</span></label>
+                                <input type="number" id="cfg-max-tick-time" class="glass-input" value="60000" min="-1">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Category: Security & Network -->
+                    <div class="settings-category">
+                        <div class="settings-category-header"><i data-lucide="shield"
+                                style="width:16px;height:16px"></i> Security &amp; Network</div>
+                        <div class="settings-fields">
+                            <div class="form-group">
+                                <label class="cfg-label">Online Mode <span class="info-tip"
+                                        data-tip="When enabled, only authenticated Mojang/Microsoft accounts can join. Disabling allows cracked clients but is a security risk.">i</span></label>
+                                <select id="cfg-online-mode" class="glass-input">
+                                    <option value="true">Official (Premium only)</option>
+                                    <option value="false">Offline (Cracked allowed)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="cfg-label">Enforce Whitelist <span class="info-tip"
+                                        data-tip="When enabled, players not on the whitelist are kicked immediately, even if already connected when the whitelist was updated.">i</span></label>
+                                <select id="cfg-enforce-whitelist" class="glass-input">
+                                    <option value="false">Disabled</option>
+                                    <option value="true">Enabled</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="cfg-label">Hide Online Players <span class="info-tip"
+                                        data-tip="If enabled, the server will not show the player list when clients hover over the player count in the server list.">i</span></label>
+                                <select id="cfg-hide-online-players" class="glass-input">
+                                    <option value="false">Disabled</option>
+                                    <option value="true">Enabled</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="cfg-label">Server Port <span class="info-tip"
+                                        data-tip="The TCP port the server listens on. Default is 25565. Requires server restart.">i</span></label>
+                                <input type="number" id="cfg-server-port" class="glass-input" value="25565" min="1024"
+                                    max="65535">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ── Player Manager ───────────────────────────────────── -->
+                <div id="tab-players" class="tab-content" style="display:none">
+                    <h2 class="page-title">Player Manager</h2>
+                    <p class="page-subtitle">Manage your whitelist, ops, and ban list</p>
+
+                    <!-- Search -->
+                    <div class="panel" style="margin-bottom:20px">
+                        <h3 style="margin-bottom:12px;display:flex;align-items:center;gap:8px"><i data-lucide="search"
+                                style="width:18px;height:18px"></i> Find Player</h3>
+                        <div style="display:flex;gap:10px">
+                            <input type="text" id="pm-search-input" class="glass-input"
+                                placeholder="Enter Minecraft username…"
+                                onkeypress="if(event.key==='Enter')searchPlayer()" style="flex:1">
+                            <button class="btn primary" onclick="searchPlayer()"><i data-lucide="search"
+                                    style="width:16px;height:16px"></i> Search</button>
+                        </div>
+                        <div id="pm-search-result" style="margin-top:14px;display:none">
+                            <!-- Filled by JS -->
+                        </div>
+                    </div>
+
+                    <!-- Player Lists -->
+                    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px">
+                        <div class="panel">
+                            <h3 style="display:flex;align-items:center;gap:8px;margin-bottom:14px"><i
+                                    data-lucide="check-circle" style="width:16px;height:16px;color:var(--success)"></i>
+                                Whitelist</h3>
+                            <div id="pm-whitelist-list">
+                                <p class="text-muted" style="font-size:.85rem">Empty</p>
+                            </div>
+                        </div>
+                        <div class="panel">
+                            <h3 style="display:flex;align-items:center;gap:8px;margin-bottom:14px"><i data-lucide="star"
+                                    style="width:16px;height:16px;color:var(--warning)"></i> Operators</h3>
+                            <div id="pm-ops-list">
+                                <p class="text-muted" style="font-size:.85rem">Empty</p>
+                            </div>
+                        </div>
+                        <div class="panel">
+                            <h3 style="display:flex;align-items:center;gap:8px;margin-bottom:14px"><i data-lucide="ban"
+                                    style="width:16px;height:16px;color:var(--danger)"></i> Banned</h3>
+                            <div id="pm-banned-list">
+                                <p class="text-muted" style="font-size:.85rem">Empty</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ── Backups ───────────────────────────────────── -->
+                <div id="tab-backups" class="tab-content" style="display:none">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px">
+                        <div>
+                            <h2 class="page-title">Backups</h2>
+                            <p class="page-subtitle">Automated world backups & safe archiving</p>
+                        </div>
+                        <button class="btn success" id="btn-create-backup" onclick="createBackup(this)">
+                            <i data-lucide="archive" style="width:16px;height:16px"></i> Create Backup Now
+                        </button>
+                    </div>
+
+                    <!-- Auto-Backup Settings -->
+                    <div class="panel" style="margin-bottom:20px;">
+                        <h3 style="margin-bottom:12px;display:flex;align-items:center;gap:8px">
+                            <i data-lucide="clock" style="width:18px;height:18px"></i> Auto-Backup Settings
+                        </h3>
+                        <div style="display:flex; gap:20px; align-items:flex-end;">
+                            <div class="form-group" style="margin-bottom:0">
+                                <label class="cfg-label">Enable Auto-Backups</label>
+                                <select id="cfg-auto-backup" class="glass-input" onchange="saveBackupSettings()">
+                                    <option value="false">Disabled</option>
+                                    <option value="true">Enabled</option>
+                                </select>
+                            </div>
+                            <div class="form-group" style="margin-bottom:0">
+                                <label class="cfg-label">Interval</label>
+                                <select id="cfg-backup-interval" class="glass-input" onchange="saveBackupSettings()">
+                                    <option value="2">Every 2 Hours</option>
+                                    <option value="6">Every 6 Hours</option>
+                                    <option value="12">Every 12 Hours</option>
+                                    <option value="24">Every 24 Hours</option>
+                                </select>
+                            </div>
+                            <div class="form-group" style="margin-bottom:0">
+                                <label class="cfg-label">Max Backups to Keep</label>
+                                <input type="number" id="cfg-max-backups" class="glass-input" value="5" min="1" max="50"
+                                    onchange="saveBackupSettings()">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Backup List -->
+                    <div class="panel">
+                        <h3 style="margin-bottom:12px;display:flex;align-items:center;gap:8px">
+                            <i data-lucide="hard-drive" style="width:18px;height:18px"></i> Local Backups
+                        </h3>
+                        <div style="overflow-x:auto;">
+                            <table class="file-table" style="width: 100%; border-collapse: collapse; text-align: left;">
+                                <thead>
+                                    <tr
+                                        style="border-bottom: 1px solid var(--border); color: var(--muted); font-size: 0.85rem;">
+                                        <th style="padding: 10px; font-weight: 600;">Filename</th>
+                                        <th style="padding: 10px; font-weight: 600;">Date</th>
+                                        <th style="padding: 10px; font-weight: 600;">Size</th>
+                                        <th style="padding: 10px; font-weight: 600; text-align: right;">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="backups-list">
+                                    <!-- Filled by JS -->
+                                    <tr>
+                                        <td colspan="4" class="text-muted" style="padding:10px;text-align:center;">
+                                            Loading...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </div><!-- /content-area -->
+        </main>
+    </div>
+
+    <!-- File Editor Modal -->
+    <div class="modal-overlay" id="editor-modal">
+        <div class="modal panel" style="width:800px; max-width:90vw; height:80vh; display:flex; flex-direction:column;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                <h3 id="editor-filename" style="display:flex; align-items:center; gap:6px;"><i data-lucide="file-edit"
+                        style="width:18px;height:18px;"></i> Editing...</h3>
+                <div style="display:flex; gap: 8px;">
+                    <button class="btn success" onclick="saveFileContent(this)" title="Save"><i data-lucide="save"
+                            style="width:16px;height:16px;"></i></button>
+                    <button class="btn danger outline" onclick="closeEditor()" title="Close"><i data-lucide="x"
+                            style="width:16px;height:16px;"></i></button>
+                </div>
+            </div>
+            <div id="editor-container" style="flex:1; border-radius:8px; overflow:hidden;"></div>
+        </div>
+    </div>
+
+    <!-- Create Modal -->
+    <div class="modal-overlay" id="create-modal">
+        <div class="modal panel" style="width: 500px; max-height: 90vh; overflow-y: auto;">
+            <h3 style="display:flex; align-items:center; gap:6px;"><i data-lucide="server"
+                    style="width:20px;height:20px;"></i> Create Server</h3>
+            <div class="form-group" style="margin-top:16px"><label>Server Name</label>
+                <div class="motd-preview" style="margin-bottom:8px; padding:10px;">
+                    <div class="motd-line1" id="create-servername-preview">Awesome Server</div>
+                </div>
+                <div id="servername-color-bar"></div>
+                <input type="text" id="server-name" class="glass-input" style="font-family:monospace;margin-top:4px"
+                    placeholder="Awesome §aServer"
+                    onkeyup="document.getElementById('create-servername-preview').innerHTML = renderMcText(this.value || 'Awesome Server')">
+            </div>
+            <div class="form-group"><label>Subdomain <span class="text-muted"
+                        style="font-size:0.8rem; font-weight:normal;">(for Playit.gg - optional)</span></label>
+                <input type="text" id="server-subdomain" class="glass-input" placeholder="my-awesome-server">
+            </div>
+            <div class="form-group"><label>Description <span class="text-muted"
+                        style="font-size:0.8rem; font-weight:normal;">(optional)</span></label>
+                <input type="text" id="server-description" class="glass-input"
+                    placeholder="Welcome to my awesome server!">
+            </div>
+
+            <div class="form-group">
+                <label style="display:flex; justify-content:space-between;">
+                    <span>Hardware Consumption (RAM)</span>
+                    <span id="ram-slider-val" style="color:var(--primary); font-weight:bold;">4 GB</span>
+                </label>
+                <input type="range" id="server-ram" class="glass-slider" min="1" max="8" value="4" step="1"
+                    oninput="document.getElementById('ram-slider-val').innerText = this.value + ' GB'">
+                <div
+                    style="display:flex; justify-content:space-between; font-size:0.75rem; color:var(--muted); margin-top:4px;">
+                    <span>1 GB</span>
+                    <span id="ram-slider-max-label">8 GB (System Max)</span>
+                </div>
+            </div>
+
+            <div class="form-group"><label>Software</label>
+                <select id="server-type" class="glass-input" onchange="fetchVersionsForSoftware()">
+                    <option value="paper">Paper – Plugins (High Performance)</option>
+                    <option value="purpur">Purpur – Plugins (Max Performance)</option>
+                    <option value="fabric">Fabric – Mods</option>
+                    <option value="forge">Forge – Heavy Mods</option>
+                    <option value="vanilla">Vanilla – Official Server</option>
+                </select>
+            </div>
+            <div class="form-group"><label>Minecraft Version</label>
+                <select id="server-version" class="glass-input">
+                    <option value="">Loading versions...</option>
+                </select>
+            </div>
+            <p class="text-muted" style="font-size:.78rem;margin-bottom:12px"><i data-lucide="lightbulb"
+                    style="width:14px;height:14px; vertical-align:text-bottom; margin-right:4px;"></i> The server jar is
+                only downloaded on first <b>Start</b> — no storage wasted creating servers.</p>
+            <div class="modal-actions">
+                <button class="btn secondary" onclick="closeCreateModal()">Cancel</button>
+                <button class="btn primary" id="btn-create-server" onclick="createServer()">Create Server</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Playit.gg Tutorial Modal -->
+    <div class="modal-overlay" id="tutorial-modal">
+        <div class="modal panel" style="width: 600px; max-height: 90vh; overflow-y: auto;">
+            <h3 style="color:var(--primary); display:flex; align-items:center; gap:6px;"><i data-lucide="rocket"
+                    style="width:20px;height:20px;"></i> Server Created Successfully!</h3>
+            <p style="margin-bottom: 20px;">Your server is ready. Here is a quick tutorial on how to make it public
+                using Playit.gg.</p>
+
+            <div class="tutorial-steps"
+                style="text-align: left; background: rgba(0,0,0,0.2); padding: 16px; border-radius: 8px; font-size: 0.95rem; line-height: 1.5;">
+                <p><b>Step 1:</b> Go to the Dashboard and click <b style="color:var(--success);">▶ Start</b> to run your
+                    server for the first time.</p>
+                <p><b>Step 2:</b> Look at the <b>Server Plan</b> panel on the Dashboard. Wait until you see a warning
+                    link that says <u>Claim your tunnel IP →</u>.</p>
+                <p><b>Step 3:</b> Click that link. It will take you to the <a href="https://playit.gg/" target="_blank"
+                        style="color:var(--primary); text-decoration:underline;">Playit.gg</a> website.</p>
+                <p><b>Step 4:</b> Log in or create a free Playit.gg account.</p>
+                <p><b>Step 5:</b> Once you add the agent to your account, Playit.gg will give you a public IP address
+                    (e.g., <i>auto-words.playit.gg</i>) that you can share with your friends!</p>
+                <p><i><i data-lucide="lightbulb"
+                            style="width:14px;height:14px; vertical-align:text-bottom; margin-right:4px;"></i> Tip: You
+                        can customize your subdomain and server region directly on the Playit.gg website dashboard!</i>
+                </p>
+            </div>
+
+            <div class="modal-actions" style="margin-top: 24px;">
+                <button class="btn primary" onclick="closeTutorialModal()">Awesome, let's go!</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.7/ace.js"></script>
+    <script src="/static/app.js"></script>
+    <script>lucide.createIcons();</script>
+</body>
+
+</html>
