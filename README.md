@@ -1,5 +1,8 @@
-<div align="center">
-  <img src="vercel-landing/mero_hoster_logo.png" alt="MeroHoster Banner" width="400" />
+<div align="left">
+  <img src="vercel-landing/mero_hoster_logo.png" alt="MeroHoster Banner" width="200" />
+</div>
+<div align="right">
+  <img src="vercel-landing/mero_client_logo.png" alt="MeroHoster Banner" width="200" />
 </div>
 
 <br>
