@@ -19,6 +19,7 @@ backend/pinggy_key
 backend/pinggy_key.pub
 backend/playit.exe
 backend/servers/
+backend/java/
 
 # AI Temporary Files
 scratch/

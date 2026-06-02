@@ -1,0 +1,337 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>MeroHoster - High Performance Infrastructure</title>
+
+        <!-- Inter Font (Clean SaaS Typography) -->
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+            rel="stylesheet"
+        />
+
+        <!-- Icons -->
+        <script src="https://unpkg.com/lucide@latest"></script>
+        <link rel="stylesheet" href="style.css" />
+    </head>
+    <body>
+        <nav class="navbar">
+            <div class="nav-content">
+                <div class="logo">
+                    <img
+                        src="mero_hoster_logo.png"
+                        alt="Mero Logo"
+                        class="nav-brand-logo"
+                    />
+                    <span>MeroHoster</span>
+                </div>
+                <div class="nav-links">
+                    <a href="#features">Features</a>
+                    <a href="#compare">Compare</a>
+                    <a href="#download" class="btn btn-outline">Get Started</a>
+                    <button class="theme-toggle" id="themeToggle" aria-label="Toggle Theme">
+                        <div class="icon-wrapper icon-moon"><i data-lucide="moon"></i></div>
+                        <div class="icon-wrapper icon-sun"><i data-lucide="sun"></i></div>
+                    </button>
+                </div>
+            </div>
+        </nav>
+
+        <main>
+            <!-- Hero Section -->
+            <section class="hero" id="home">
+                <div class="hero-content">
+                    <div class="badge">
+                        <div class="badge-dot"></div>
+                        Public Beta Live
+                    </div>
+                    <h1 class="hero-title">
+                        Host Minecraft directly from your PC.
+                    </h1>
+                    <p class="hero-subtitle">
+                        A lightweight hoster and client that connects players directly to your machine. No monthly fees, automatic mod syncing, and lower ping.
+                    </p>
+                    <div class="hero-actions">
+                        <a href="#download" class="btn btn-primary">
+                            <i data-lucide="download"></i> Download Hoster
+                        </a>
+                        <a href="#download" class="btn btn-outline">
+                            <i data-lucide="gamepad-2"></i> Get Client
+                        </a>
+                    </div>
+                </div>
+
+                <div class="hero-visual">
+                    <div class="mockup-card">
+                        <div class="mockup-header">
+                            <div class="dots">
+                                <span></span><span></span><span></span>
+                            </div>
+                            <div class="mockup-title">MeroHoster Desktop</div>
+                        </div>
+                        <div class="mockup-body" style="font-family: var(--font-main);">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                                <div>
+                                    <h4 style="margin: 0; font-size: 1.1rem; font-weight: 600;">Server Status</h4>
+                                    <div style="display: flex; align-items: center; gap: 8px; color: var(--primary); font-size: 0.9rem; font-weight: 500; margin-top: 4px;">
+                                        <div style="width: 8px; height: 8px; border-radius: 50%; background: var(--primary); box-shadow: 0 0 8px var(--primary);"></div>
+                                        Online & Routing
+                                    </div>
+                                </div>
+                                <div style="background: rgba(128,128,128,0.1); padding: 8px 12px; border-radius: 8px; font-family: var(--font-mono); font-size: 0.85rem; border: 1px solid var(--border);">
+                                    Port: 25565
+                                </div>
+                            </div>
+                            
+                            <div style="margin-bottom: 1.5rem;">
+                                <label style="display: block; font-size: 0.85rem; color: var(--text-dim); margin-bottom: 8px; font-weight: 500;">Your Invite Code</label>
+                                <div style="display: flex; gap: 8px;">
+                                    <input type="text" value="MERO-aHR0cHM6Ly9tZXJvLmxpbmsvYXBpL3YxL2Nvbm5lY3QvOGQ0ZTE2ZDktYzExMS00N2EzLThmZTktODQ0N2JmMWEyYmEy" readonly style="flex: 1; background: rgba(128,128,128,0.05); border: 1px solid var(--border); color: var(--text-main); padding: 10px 12px; border-radius: 6px; font-family: var(--font-mono); outline: none;">
+                                    <button class="btn btn-primary" style="padding: 10px 14px;"><i data-lucide="copy" style="width: 16px; height: 16px;"></i></button>
+                                </div>
+                            </div>
+
+                            <div style="border-top: 1px solid var(--border); margin-top: 1.5rem; padding-top: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
+                                <span style="font-size: 0.85rem; color: var(--text-dim);">42 Mods Synced</span>
+                                <button class="btn btn-outline" style="font-size: 0.85rem; padding: 6px 12px;">Stop Server</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Features Section (Bento Box Layout) -->
+            <section class="features" id="features">
+                <h2 class="section-title">Built for Performance</h2>
+                <div class="features-grid">
+                    <div class="card feature-hero">
+                        <h3>Direct Connections</h3>
+                        <p>
+                            Players connect directly to your PC using WebRTC. No intermediate proxy servers routing traffic across the globe, meaning significantly lower ping for your players.
+                        </p>
+                    </div>
+                    <div class="card feature-standard">
+                        <div class="feature-icon"><i data-lucide="cpu"></i></div>
+                        <h3>Use Your Hardware</h3>
+                        <p>
+                            No RAM limits or subscription tiers. Use the hardware you already own to host your world exactly how you want.
+                        </p>
+                    </div>
+                    <div class="card feature-standard">
+                        <div class="feature-icon"><i data-lucide="folder-sync"></i></div>
+                        <h3>Automatic Mod Sync</h3>
+                        <p>
+                            MeroClient automatically downloads and syncs your exact modpack to players on join. No more zipping folders.
+                        </p>
+                    </div>
+                    <div class="card feature-hero" style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.05) 0%, rgba(245, 158, 11, 0.01) 100%); border-color: rgba(245, 158, 11, 0.2);">
+                        <h3 style="color: var(--warning, #f59e0b);">Play With Friends</h3>
+                        <p>
+                            To achieve the lowest possible latency, MeroHoster establishes a true direct connection. This means <strong>your IP address is visible to connected players</strong>. It is designed for playing with trusted friends, not public communities.
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Compare Section -->
+            <section class="compare" id="compare">
+                <h2 class="section-title">The New Standard</h2>
+                <div class="table-container">
+                    <table class="compare-table">
+                        <thead>
+                            <tr>
+                                <th>Feature</th>
+                                <th class="highlight-col text-primary">MeroHoster</th>
+                                <th>SquidServers</th>
+                                <th>Realms</th>
+                                <th>Aternos</th>
+                                <th>Ngrok / Playit</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <strong>Direct P2P Routing</strong><br />
+                                    <span class="text-dim font-sm">Lowest latency connection</span>
+                                </td>
+                                <td class="highlight-col"><i data-lucide="check" class="table-icon check text-primary"></i></td>
+                                <td><i data-lucide="x" class="table-icon cross"></i></td>
+                                <td><i data-lucide="x" class="table-icon cross"></i></td>
+                                <td><i data-lucide="x" class="table-icon cross"></i></td>
+                                <td><i data-lucide="x" class="table-icon cross"></i></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <strong>Free Hardware Usage</strong><br />
+                                    <span class="text-dim font-sm">No monthly fees or limits</span>
+                                </td>
+                                <td class="highlight-col"><i data-lucide="check" class="table-icon check text-primary"></i></td>
+                                <td><i data-lucide="check" class="table-icon check"></i></td>
+                                <td><i data-lucide="x" class="table-icon cross"></i></td>
+                                <td><i data-lucide="check" class="table-icon check"></i></td>
+                                <td><i data-lucide="check" class="table-icon check"></i></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <strong>Automatic Mod Syncing</strong><br />
+                                    <span class="text-dim font-sm">Clients sync on join</span>
+                                </td>
+                                <td class="highlight-col"><i data-lucide="check" class="table-icon check text-primary"></i></td>
+                                <td><i data-lucide="x" class="table-icon cross"></i></td>
+                                <td><i data-lucide="x" class="table-icon cross"></i></td>
+                                <td><i data-lucide="x" class="table-icon cross"></i></td>
+                                <td><i data-lucide="x" class="table-icon cross"></i></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <strong>IP Hiding (Proxy)</strong><br />
+                                    <span class="text-dim font-sm">Masks host IP address</span>
+                                </td>
+                                <td class="highlight-col"><i data-lucide="x" class="table-icon cross"></i></td>
+                                <td><i data-lucide="check" class="table-icon check"></i></td>
+                                <td><i data-lucide="check" class="table-icon check"></i></td>
+                                <td><i data-lucide="check" class="table-icon check"></i></td>
+                                <td><i data-lucide="check" class="table-icon check"></i></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <strong>No Port Forwarding</strong><br />
+                                    <span class="text-dim font-sm">Works behind any router</span>
+                                </td>
+                                <td class="highlight-col"><i data-lucide="check" class="table-icon check text-primary"></i></td>
+                                <td><i data-lucide="check" class="table-icon check"></i></td>
+                                <td><i data-lucide="check" class="table-icon check"></i></td>
+                                <td><i data-lucide="check" class="table-icon check"></i></td>
+                                <td><i data-lucide="check" class="table-icon check"></i></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <strong>Can Leave World</strong><br />
+                                    <span class="text-dim font-sm">Server stays online when you leave</span>
+                                </td>
+                                <td class="highlight-col"><i data-lucide="check" class="table-icon check text-primary"></i></td>
+                                <td><i data-lucide="check" class="table-icon check"></i></td>
+                                <td><i data-lucide="check" class="table-icon check"></i></td>
+                                <td><i data-lucide="check" class="table-icon check"></i></td>
+                                <td><i data-lucide="check" class="table-icon check"></i></td>
+                            </tr>
+
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Download Section -->
+            <section class="downloads" id="download">
+                <h2 class="section-title">Start Hosting</h2>
+                <div class="download-grid">
+                    <div class="card dl-card">
+                        <img
+                            src="mero_hoster_logo.png"
+                            alt="MeroHoster Logo"
+                            class="brand-logo"
+                        />
+                        <h3>MeroHoster</h3>
+                        <p>
+                            For the Server Owner. Run this on your PC to securely expose your local server and distribute your modpack.
+                        </p>
+                        <ul class="req-list">
+                            <li><i data-lucide="check"></i> Windows 10/11</li>
+                            <li><i data-lucide="check"></i> Includes Control Panel Dashboard</li>
+                        </ul>
+                        <a
+                            href="https://github.com/iamthebestcoderalive/MeroHoster/releases/latest/download/MeroHoster.zip"
+                            class="btn btn-primary dl-btn"
+                        >
+                            <i data-lucide="download"></i> Download Hoster
+                        </a>
+                    </div>
+
+                    <div class="card dl-card">
+                        <img
+                            src="mero_client_logo.png"
+                            alt="MeroClient Logo"
+                            class="brand-logo"
+                        />
+                        <h3>MeroClient</h3>
+                        <p>
+                            For the Players. Automatically downloads required mods and establishes a direct connection to the host.
+                        </p>
+                        <ul class="req-list">
+                            <li><i data-lucide="check"></i> Windows 10/11</li>
+                            <li><i data-lucide="check"></i> Integrates with Official Launcher</li>
+                        </ul>
+                        <div class="dl-actions">
+                            <a
+                                href="https://github.com/iamthebestcoderalive/MeroHoster_New/releases/download/v.1.0.0/MeroClient.zip"
+                                class="btn btn-outline dl-btn"
+                            >
+                                <i data-lucide="download"></i> Download Client
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 2rem; max-width: 1200px; margin: 4rem auto 0; padding: 4rem 2rem; border-top: 1px solid var(--border); text-align: left;">
+            <div>
+                <div style="display: flex; align-items: center; gap: 0.75rem; font-weight: 700; font-size: 1.25rem; margin-bottom: 1rem; color: var(--text-main);">
+                    <img src="mero_hoster_logo.png" width="24" height="24" alt="Logo"> MeroHoster
+                </div>
+                <p style="color: var(--text-dim); max-width: 300px; font-size: 0.95rem; line-height: 1.6;">
+                    The most transparent way to host Minecraft directly from your PC with zero latency.
+                </p>
+                <p style="color: var(--text-dim); font-size: 0.8rem; margin-top: 2.5rem;">
+                    &copy; 2026 MeroHoster. Designed for performance.
+                </p>
+            </div>
+            
+            <div style="display: flex; gap: 4rem; flex-wrap: wrap;">
+                <div>
+                    <h4 style="color: var(--text-main); margin-bottom: 1.25rem; font-weight: 600;">Community</h4>
+                    <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.75rem; font-size: 0.9rem;">
+                        <li><a href="#" style="color: var(--text-dim); text-decoration: none; transition: color 0.2s;">Blog</a></li>
+                        <li><a href="#" style="color: var(--text-dim); text-decoration: none; transition: color 0.2s;">Discord</a></li>
+                        <li><a href="#" style="color: var(--text-dim); text-decoration: none; transition: color 0.2s;">Updates</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 style="color: var(--text-main); margin-bottom: 1.25rem; font-weight: 600;">Alternatives</h4>
+                    <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.75rem; font-size: 0.9rem;">
+                        <li><a href="https://squidservers.com" target="_blank" rel="noopener noreferrer" style="color: var(--text-dim); text-decoration: none; display: flex; align-items: center; transition: color 0.2s;">SquidServers <i data-lucide="external-link" style="width:12px; height:12px; margin-left:4px; opacity:0.6;"></i></a></li>
+                        <li><a href="https://apexminecrafthosting.com" target="_blank" rel="noopener noreferrer" style="color: var(--text-dim); text-decoration: none; display: flex; align-items: center; transition: color 0.2s;">Apex Hosting <i data-lucide="external-link" style="width:12px; height:12px; margin-left:4px; opacity:0.6;"></i></a></li>
+                        <li><a href="https://aternos.org" target="_blank" rel="noopener noreferrer" style="color: var(--text-dim); text-decoration: none; display: flex; align-items: center; transition: color 0.2s;">Aternos <i data-lucide="external-link" style="width:12px; height:12px; margin-left:4px; opacity:0.6;"></i></a></li>
+                        <li><a href="https://essential.gg" target="_blank" rel="noopener noreferrer" style="color: var(--text-dim); text-decoration: none; display: flex; align-items: center; transition: color 0.2s;">Essential <i data-lucide="external-link" style="width:12px; height:12px; margin-left:4px; opacity:0.6;"></i></a></li>
+                        <li><a href="https://playit.gg" target="_blank" rel="noopener noreferrer" style="color: var(--text-dim); text-decoration: none; display: flex; align-items: center; transition: color 0.2s;">playit.gg <i data-lucide="external-link" style="width:12px; height:12px; margin-left:4px; opacity:0.6;"></i></a></li>
+                    </ul>
+                </div>
+            </div>
+        </footer>
+
+        <script>
+            lucide.createIcons();
+            
+            // Premium Theme Toggle Logic
+            const themeToggle = document.getElementById('themeToggle');
+            
+            // Check local storage for theme preference
+            const currentTheme = localStorage.getItem('theme');
+            if (currentTheme === 'light') {
+                document.body.classList.add('light-mode');
+            }
+
+            themeToggle.addEventListener('click', () => {
+                document.body.classList.toggle('light-mode');
+                if (document.body.classList.contains('light-mode')) {
+                    localStorage.setItem('theme', 'light');
+                } else {
+                    localStorage.setItem('theme', 'dark');
+                }
+            });
+        </script>
+    </body>
+</html>
