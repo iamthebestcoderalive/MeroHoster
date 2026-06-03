@@ -19,6 +19,7 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 
 [Files]
 Source: "dist\MeroHoster\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "MeroHoster.ico"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
 Name: "{group}\MeroHoster"; Filename: "{app}\MeroHoster.exe"
@@ -27,9 +28,9 @@ Name: "{autodesktop}\MeroHoster"; Filename: "{app}\MeroHoster.exe"; Tasks: deskt
 [Registry]
 ; Context menu registration for folders "Open Server in MeroHoster"
 Root: HKCU; Subkey: "Software\Classes\Directory\shell\MeroHoster"; ValueType: string; ValueData: "Open Server in MeroHoster"; Flags: uninsdeletekey
-Root: HKCU; Subkey: "Software\Classes\Directory\shell\MeroHoster"; ValueType: string; ValueName: "Icon"; ValueData: """{app}\MeroHoster.exe"""
+Root: HKCU; Subkey: "Software\Classes\Directory\shell\MeroHoster"; ValueType: string; ValueName: "Icon"; ValueData: """{app}\MeroHoster.ico"""
 Root: HKCU; Subkey: "Software\Classes\Directory\shell\MeroHoster\command"; ValueType: string; ValueData: """{app}\MeroHoster.exe"" ""%1"""
 
 Root: HKCU; Subkey: "Software\Classes\Directory\Background\shell\MeroHoster"; ValueType: string; ValueData: "Open Server in MeroHoster"; Flags: uninsdeletekey
-Root: HKCU; Subkey: "Software\Classes\Directory\Background\shell\MeroHoster"; ValueType: string; ValueName: "Icon"; ValueData: """{app}\MeroHoster.exe"""
+Root: HKCU; Subkey: "Software\Classes\Directory\Background\shell\MeroHoster"; ValueType: string; ValueName: "Icon"; ValueData: """{app}\MeroHoster.ico"""
 Root: HKCU; Subkey: "Software\Classes\Directory\Background\shell\MeroHoster\command"; ValueType: string; ValueData: """{app}\MeroHoster.exe"" ""%V"""
