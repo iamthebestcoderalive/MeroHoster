@@ -26,7 +26,7 @@
 To run the server and access the web dashboard:
 
 1. Go to the **Releases** tab on the right side of this GitHub page.
-2. Download the latest `MeroHoster_Installer_v2.exe` (or the newest installer `.exe`).
+2. Download the latest `MeroHoster_Setup.exe`.
 3. Run the installer wizard to install MeroHoster on your PC.
 4. Launch MeroHoster from your new Desktop shortcut or Start Menu!
 5. Click `Create Server` to create a new server. *(Pro tip: You can also just right-click any existing Minecraft server folder on your PC and select **"Open Server in MeroHoster"** to magically import it!)*
@@ -41,7 +41,7 @@ To run the server and access the web dashboard:
 *__Players__* do **not** need to download the source code, run any commands, or use MeroHoster. Instead, they just use the custom **MeroClient**.
 
 1. Go to the **Releases** tab on the right side of this GitHub page.
-2. Download the latest `MeroClient_Installer.exe` (or the newest installer `.exe`).
+2. Download the latest `MeroClient_Installer.exe`.
 3. Run the setup wizard to fully install MeroClient on your PC. (It includes an auto-updater, so you only have to install it once!)
 4. Open MeroClient from your Desktop. Click __*`Add Server`*__, paste the Invite code provided by the server host in the box and click *__Check__*.
 5. If the Code is valid, browse to your correspondant instance folder. 
