@@ -43,8 +43,8 @@ To run the server and access the web dashboard:
 2. Download the latest *`MeroClient.zip`*.
 3. Open the Install Wizard, Fill it and Click Install.
 4. In the MeroClient app, click __*`Add Server`*__, paste the Invite code provided by the server host in the box and click *__Check__*.
-5. If the Code is valid, browse to your correspondant instance folder.
-5.5 (Optional). If you can't run resourcepacks and shaders, or just wanna have your own, uncheck the boxes above.
+5. If the Code is valid, browse to your correspondant instance folder. 
+*  5.5: (Optional) If you can't run resourcepacks and shaders, or just wanna have your own, uncheck the boxes above.
 6. click *Sync & Connect*, the app will configure the world, install any mods ( if available ) and connect you.
 7. IMPORTANT : Once you connect, copy the code, BUT DO NOT LEAVE THE APP FOR THE CONNECTION TO STAY.
 
