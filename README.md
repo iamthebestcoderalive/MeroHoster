@@ -8,7 +8,7 @@
 # 🎮 MeroHoster & MeroClient
 **MeroHoster** is a modern, lightweight, and powerful Minecraft server hosting wrapper. It provides a beautiful web-based interface to manage your Minecraft servers effortlessly, removing the headache of command-line setups and port-forwarding.
 
-Whether you're running a small Vanilla server for friends or a heavy Modpack server, MeroHoster gives you everything you need in one sleek dashboard, while **MeroClient** allows your players to join instantly without ever typing an IP address!
+**MeroClient** Allows players to join via the invite code and sets up everything for them. ONLY WORKS WITH MERO P2P !
 
 ---
 
