@@ -25,7 +25,7 @@
 ## 🚀 How to Host a Server (For the Host)
 To run the server and access the web dashboard:
 
-1. Download the MeroHoster.exe from the Releases tab or Clone the Repo.
+1. Download the MeroHoster_Setup.exe from the Releases tab or Clone the Repo.
 2. Double-click the `start_mero.bat` file.
 3. The dependencies will automatically install, the backend will start, and the MeroHoster will open on your computer!
 4. Click `Create Server` to create a new server.
@@ -40,7 +40,7 @@ To run the server and access the web dashboard:
 *__Players__* do **not** need to download the source code, run any commands, or use MeroHoster. Instead, they just use the custom **MeroClient**.
 
 1. Go to the **Releases** tab on the right side of this GitHub page.
-2. Download the latest *`MeroClient.zip`*.
+2. Download the latest *`MeroClient_Installer.exe`*.
 3. Open the Install Wizard, Fill it and Click Install.
 4. In the MeroClient app, click __*`Add Server`*__, paste the Invite code provided by the server host in the box and click *__Check__*.
 5. If the Code is valid, browse to your correspondant instance folder. 
