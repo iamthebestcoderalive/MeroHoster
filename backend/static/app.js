@@ -181,7 +181,15 @@ async function fetchServersList() {
     document.getElementById("empty-state").style.display = "none";
     document.getElementById("app-container").style.display = "flex";
 
-    if (!currentServer || !servers.find((s) => s.name === currentServer)) {
+    const urlParams = new URLSearchParams(window.location.search);
+    const requestedServer = urlParams.get('server');
+
+    if (requestedServer && servers.find((s) => s.name === requestedServer) && !currentServer) {
+      currentServer = requestedServer;
+      sel.value = currentServer;
+      onServerChange();
+      switchTab('dashboard');
+    } else if (!currentServer || !servers.find((s) => s.name === currentServer)) {
       const wasEmpty = !currentServer;
       currentServer = servers[0].name;
       sel.value = currentServer;
@@ -189,6 +197,8 @@ async function fetchServersList() {
       if (wasEmpty) {
           switchTab('dashboard');
       }
+    } else {
+      sel.value = currentServer;
     }
     
     // Start the onboarding tour only after a server is selected

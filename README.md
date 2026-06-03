@@ -6,7 +6,6 @@
 <br>
 
 # 🎮 MeroHoster & MeroClient
-
 **MeroHoster** is a modern, lightweight, and powerful Minecraft server hosting wrapper. It provides a beautiful web-based interface to manage your Minecraft servers effortlessly, removing the headache of command-line setups and port-forwarding.
 
 Whether you're running a small Vanilla server for friends or a heavy Modpack server, MeroHoster gives you everything you need in one sleek dashboard, while **MeroClient** allows your players to join instantly without ever typing an IP address!
@@ -25,24 +24,36 @@ Whether you're running a small Vanilla server for friends or a heavy Modpack ser
 
 ## 🚀 How to Host a Server (For the Host)
 To run the server and access the web dashboard:
-1. Clone or download this repository.
+
+1. Download the MeroHoster.exe from the Releases tab or Clone the Repo.
 2. Double-click the `start_mero.bat` file.
-3. The dependencies will automatically install, the backend will start, and your beautiful web dashboard will open in your browser!
+3. The dependencies will automatically install, the backend will start, and the MeroHoster will open on your computer!
+4. Click `Create Server` to create a new server.
+5. Choose a name and/or a description, select the connection method, the platform and version, and select the amount of RAM utilized by the server.
+6. Once you're done, Click create.
+7. You'll be redirected to the setup guide and get greeted by a tuto.
+8. Once the tuto is completed, click the `Start` button on the top to start the server for the first time.
 
 ---
 
 ## 🎮 How to Join the Server (For Players)
-Players do **not** need to download the source code, run any commands, or use the web dashboard. Instead, they just use the custom **MeroClient**.
+*__Players__* do **not** need to download the source code, run any commands, or use MeroHoster. Instead, they just use the custom **MeroClient**.
+
 1. Go to the **Releases** tab on the right side of this GitHub page.
-2. Download the latest `MeroClient.exe`.
-3. Run the client! It will automatically locate the live Playit.gg tunnel and launch Minecraft directly into the server. No IPs required!
+2. Download the latest *`MeroClient.zip`*.
+3. Open the Install Wizard, Fill it and Click Install.
+4. In the MeroClient app, click __*`Add Server`*__, paste the Invite code provided by the server host in the box and click *__Check__*.
+5. If the Code is valid, browse to your correspondant instance folder.
+5.5 (Optional). If you can't run resourcepacks and shaders, or just wanna have your own, uncheck the boxes above.
+6. click *Sync & Connect*, the app will configure the world, install any mods ( if available ) and connect you.
+7. IMPORTANT : Once you connect, copy the code, BUT DO NOT LEAVE THE APP FOR THE CONNECTION TO STAY.
 
 ---
 
 ## 🛠️ Technology Stack
 * **Backend:** Python (Flask, Waitress)
 * **Frontend:** Vanilla HTML, CSS, JavaScript (Lucide Icons, Chart.js)
-* **Tunneling:** Playit.gg Integration
+* **Tunneling:** Playit.gg Integration, Custom Mero P2P Tunnel
 * **Client:** Python (Custom Minecraft Launcher wrapper)
 
 ---

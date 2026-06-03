@@ -24,6 +24,7 @@ import sys
 # --- 8-Bit Font System ---
 FONT_HEADING = "Press Start 2P"
 FONT_BODY = "VT323"
+CLIENT_VERSION = "v1.0.0"
 
 def load_custom_fonts():
     if sys.platform != "win32":
@@ -1580,6 +1581,48 @@ class MeroWizard(ctk.CTk):
         super().destroy()
 
 
+def check_for_client_updates():
+    try:
+        import urllib.request, json
+        exe_path = sys.executable
+        old_exe_path = exe_path + ".old"
+        if os.path.exists(old_exe_path):
+            try:
+                os.remove(old_exe_path)
+            except:
+                pass
+
+        if not getattr(sys, 'frozen', False):
+            return
+
+        req = urllib.request.Request("https://api.github.com/repos/iamthebestcoderalive/MeroHoster/releases/latest")
+        req.add_header("User-Agent", "MeroClient")
+        with urllib.request.urlopen(req, timeout=5) as response:
+            data = json.loads(response.read().decode())
+        latest_version = data["tag_name"]
+
+        if latest_version != CLIENT_VERSION:
+            print(f"[Mero] Update found: {latest_version} (Current: {CLIENT_VERSION})")
+            download_url = None
+            for asset in data.get("assets", []):
+                if asset["name"] == "MeroClient.exe":
+                    download_url = asset["browser_download_url"]
+                    break
+            
+            if download_url:
+                print(f"[Mero] Downloading update...")
+                new_exe_path = exe_path + ".new"
+                urllib.request.urlretrieve(download_url, new_exe_path)
+                
+                os.rename(exe_path, old_exe_path)
+                os.rename(new_exe_path, exe_path)
+                print(f"[Mero] Update complete! Restarting...")
+                subprocess.Popen([exe_path] + sys.argv[1:])
+                sys.exit(0)
+    except Exception as e:
+        print(f"[Mero] Update check failed: {e}")
+
 if __name__ == "__main__":
+    check_for_client_updates()
     app = MeroWizard()
     app.mainloop()

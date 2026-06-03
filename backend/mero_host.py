@@ -241,8 +241,6 @@ def kill_process_on_port(port):
         except:
             pass
     return False
-
-
 # ─────────────────────────── App setup ───────────────────────────────────────
 app = FastAPI()
 app.add_middleware(
@@ -253,11 +251,19 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-SERVERS_DIR = os.path.join(BASE_DIR, "servers")
-JAVA_DIR = os.path.join(BASE_DIR, "java")
+if getattr(sys, 'frozen', False):
+    DATA_DIR = os.path.dirname(sys.executable)
+    BUNDLE_DIR = sys._MEIPASS
+else:
+    DATA_DIR = os.path.dirname(os.path.abspath(__file__))
+    BUNDLE_DIR = DATA_DIR
+
+BASE_DIR = BUNDLE_DIR
+SERVERS_DIR = os.path.join(DATA_DIR, "servers")
+JAVA_DIR = os.path.join(DATA_DIR, "java")
 JAVA_EXE = os.path.join(JAVA_DIR, "bin", "java.exe")
-PLAYIT_EXE = os.path.join(BASE_DIR, "playit.exe")
+VERSIONS_CACHE_DIR = os.path.join(DATA_DIR, "versions")
+PLAYIT_EXE = os.path.join(BUNDLE_DIR, "playit.exe")
 # pinggy removed
 os.makedirs(SERVERS_DIR, exist_ok=True)
 
@@ -715,6 +721,16 @@ def read_playit(proc, name):
 # ─────────────────────────── Installation (sync, runs in thread) ─────────────
 def _download_jar(name, req_type, req_version, jar_path, server_path):
     """Synchronous jar download using httpx - safe to call from a thread."""
+    os.makedirs(VERSIONS_CACHE_DIR, exist_ok=True)
+    is_single_jar = req_type in ["paper", "purpur", "fabric"]
+    cached_jar_path = os.path.join(VERSIONS_CACHE_DIR, f"{req_type}-{req_version}.jar")
+
+    if is_single_jar and os.path.exists(cached_jar_path):
+        log(name, f"[Mero] 📦 Found cached {req_type} {req_version}, skipping download...")
+        os.makedirs(os.path.dirname(jar_path), exist_ok=True)
+        shutil.copy(cached_jar_path, jar_path)
+        return
+
     with httpx.Client(timeout=600, follow_redirects=True) as client:
         if req_type == "paper":
             log(name, f"[Mero] 🔍 Fetching latest Paper build for {req_version}…")
@@ -729,8 +745,10 @@ def _download_jar(name, req_type, req_version, jar_path, server_path):
             )
             log(name, f"[Mero] ⬇  Downloading Paper {req_version} build #{build}…")
             data = client.get(url).raise_for_status().content
-            with open(jar_path, "wb") as f:
+            with open(cached_jar_path, "wb") as f:
                 f.write(data)
+            os.makedirs(os.path.dirname(jar_path), exist_ok=True)
+            shutil.copy(cached_jar_path, jar_path)
 
         elif req_type == "purpur":
             log(name, f"[Mero] 🔍 Fetching latest Purpur build for {req_version}…")
@@ -740,8 +758,10 @@ def _download_jar(name, req_type, req_version, jar_path, server_path):
             url = f"https://api.purpurmc.org/v2/purpur/{req_version}/{build}/download"
             log(name, f"[Mero] ⬇  Downloading Purpur {req_version} build #{build}…")
             data = client.get(url).raise_for_status().content
-            with open(jar_path, "wb") as f:
+            with open(cached_jar_path, "wb") as f:
                 f.write(data)
+            os.makedirs(os.path.dirname(jar_path), exist_ok=True)
+            shutil.copy(cached_jar_path, jar_path)
 
         elif req_type == "fabric":
             # Fetch latest stable loader + installer versions dynamically
@@ -766,8 +786,10 @@ def _download_jar(name, req_type, req_version, jar_path, server_path):
                 f"[Mero] ⬇  Downloading Fabric {req_version} (loader {loader_ver})…",
             )
             data = client.get(url).raise_for_status().content
-            with open(jar_path, "wb") as f:
+            with open(cached_jar_path, "wb") as f:
                 f.write(data)
+            os.makedirs(os.path.dirname(jar_path), exist_ok=True)
+            shutil.copy(cached_jar_path, jar_path)
 
         elif req_type == "forge":
             log(name, "[Mero] 🔍 Fetching Forge version list…")
@@ -826,7 +848,7 @@ def _ensure_java_thread(name):
         return True
     log(name, "[Mero] ☕ Java 21 not found — downloading via Adoptium API…")
     os.makedirs(JAVA_DIR, exist_ok=True)
-    zip_path = os.path.join(BASE_DIR, "jre.zip")
+    zip_path = os.path.join(DATA_DIR, "jre.zip")
     try:
         with httpx.Client(timeout=60, follow_redirects=True) as client:
             # Step 1: Ask Adoptium API for the actual download link
@@ -3792,7 +3814,10 @@ def run_uvicorn():
     uvicorn.run(app, host="127.0.0.1", port=8000, log_level="info")
 
 
+keep_running_flag = False
+
 def on_closing():
+    global keep_running_flag
     # Check if any servers are running
     active = False
     for name, st in server_state.items():
@@ -3809,9 +3834,53 @@ def on_closing():
             stop_server(name, force=True)
         return True
     elif choice == "keep":
+        keep_running_flag = True
         return True
     return False  # Cancel
 
+
+def import_external_server(folder_path):
+    if not os.path.isdir(folder_path):
+        logger.error(f"[MeroHoster] Error: {folder_path} is not a directory.")
+        return None
+        
+    files = os.listdir(folder_path)
+    is_server = any(f in ["server.properties", "eula.txt", "run.bat", "run.sh"] for f in files) or any(f.endswith(".jar") for f in files)
+    
+    if not is_server:
+        logger.error(f"[MeroHoster] Error: {folder_path} does not look like a Minecraft server.")
+        return None
+        
+    folder_name = os.path.basename(os.path.normpath(folder_path))
+    target_symlink = os.path.join(SERVERS_DIR, folder_name)
+    
+    if not os.path.exists(target_symlink):
+        logger.info(f"[MeroHoster] Creating NTFS Junction to {folder_path}")
+        subprocess.run(["cmd.exe", "/c", "mklink", "/J", target_symlink, folder_path], capture_output=True)
+        
+    engine = "paper"
+    version = "1.20.1"
+    
+    if any("forge" in f.lower() for f in files):
+        engine = "forge"
+    elif any("fabric" in f.lower() for f in files):
+        engine = "fabric"
+    elif any("purpur" in f.lower() for f in files):
+        engine = "purpur"
+    elif any("spigot" in f.lower() for f in files):
+        engine = "spigot"
+        
+    meta_path = os.path.join(target_symlink, "meta.json")
+    if not os.path.exists(meta_path):
+        with open(meta_path, "w", encoding="utf-8") as f:
+            json.dump({
+                "type": engine,
+                "version": version,
+                "java": "java17",
+                "args": "-Xmx4G -Xms4G"
+            }, f, indent=4)
+            
+    return folder_name
 
 if __name__ == "__main__":
     # Start pre-fetching IPs and specs in the background
@@ -3821,25 +3890,29 @@ if __name__ == "__main__":
         threading.Thread(target=get_public_ip, daemon=True).start()
         threading.Thread(target=_fetch_system_specs_bg, daemon=True).start()
 
-        # Scan servers to restore any leftover .disabled AutoModpack jars from unclean crashes
-        try:
-            if os.path.exists(SERVERS_DIR):
-                for sname in os.listdir(SERVERS_DIR):
-                    s_mods = os.path.join(SERVERS_DIR, sname, "mods")
-                    if os.path.isdir(s_mods):
-                        for fn in os.listdir(s_mods):
-                            if fn.lower().startswith("automodpack") and fn.lower().endswith(".jar.disabled"):
-                                old_path = os.path.join(s_mods, fn)
-                                new_path = os.path.join(s_mods, fn[:-9])
-                                logger.info(f"[Mero Startup] Restoring leftover disabled AutoModpack: {old_path} -> {new_path}")
-                                try:
-                                    if os.path.exists(new_path):
-                                        os.remove(new_path)
-                                    os.rename(old_path, new_path)
-                                except Exception as e:
-                                    logger.warning(f"[Mero Startup] Failed to restore leftover AutoModpack {fn}: {e}")
-        except Exception as e:
-            logger.error(f"[Mero Startup] Error restoring leftover AutoModpack mods: {e}")
+    imported_server = None
+    if len(sys.argv) > 1:
+        folder = sys.argv[1]
+        imported_server = import_external_server(folder)
+
+    try:
+        if os.path.exists(SERVERS_DIR):
+            for sname in os.listdir(SERVERS_DIR):
+                s_mods = os.path.join(SERVERS_DIR, sname, "mods")
+                if os.path.isdir(s_mods):
+                    for fn in os.listdir(s_mods):
+                        if fn.lower().startswith("automodpack") and fn.lower().endswith(".jar.disabled"):
+                            old_path = os.path.join(s_mods, fn)
+                            new_path = os.path.join(s_mods, fn[:-9])
+                            logger.info(f"[Mero Startup] Restoring leftover disabled AutoModpack: {old_path} -> {new_path}")
+                            try:
+                                if os.path.exists(new_path):
+                                    os.remove(new_path)
+                                os.rename(old_path, new_path)
+                            except Exception as e:
+                                logger.warning(f"[Mero Startup] Failed to restore leftover AutoModpack {fn}: {e}")
+    except Exception as e:
+        logger.error(f"[Mero Startup] Error restoring leftover AutoModpack mods: {e}")
 
     threading.Thread(target=prefetch_all, daemon=True).start()
 
@@ -3860,9 +3933,14 @@ if __name__ == "__main__":
         time.sleep(0.1)
 
     if HAS_WEBVIEW:
+        url = "http://127.0.0.1:8000"
+        if imported_server:
+            import urllib.parse
+            url += f"/?server={urllib.parse.quote(imported_server)}"
+        
         window = webview.create_window(
             title="MeroHoster",
-            url="http://127.0.0.1:8000",
+            url=url,
             width=1280,
             height=820,
             min_size=(960, 640),
@@ -3871,7 +3949,7 @@ if __name__ == "__main__":
             js_api=JSApi(),
         )
         window.events.closing += on_closing
-        storage_path = os.path.join(BASE_DIR, ".webview_storage")
+        storage_path = os.path.join(DATA_DIR, ".webview_storage")
         
         # Aggressively clear WebView cache to prevent corrupted static files
         import shutil
@@ -3888,11 +3966,38 @@ if __name__ == "__main__":
                     pass
 
         webview.start(private_mode=False, storage_path=storage_path)
+        
+        if keep_running_flag:
+            import customtkinter as ctk
+            import sys
+            
+            app = ctk.CTk()
+            app.title("MeroHoster - Background Process")
+            app.geometry("350x150")
+            app.configure(fg_color="#0d0f13")
+            
+            ctk.CTkLabel(app, text="MeroHoster Dashboard Closed", font=("Arial", 16, "bold"), text_color="#39FF14").pack(pady=(20, 5))
+            ctk.CTkLabel(app, text="Minecraft servers are still running in the background.", text_color="gray").pack(pady=(0, 15))
+            
+            def full_shutdown():
+                for name in list(server_state.keys()):
+                    stop_server(name, force=True)
+                app.destroy()
+                sys.exit(0)
+                
+            ctk.CTkButton(app, text="Shutdown All Servers & Exit", fg_color="#FF3131", hover_color="#c0392b", command=full_shutdown).pack()
+            app.protocol("WM_DELETE_WINDOW", full_shutdown)
+            app.mainloop()
+            
     else:
+        url = "http://127.0.0.1:8000"
+        if imported_server:
+            import urllib.parse
+            url += f"/?server={urllib.parse.quote(imported_server)}"
         logger.info(
-            "Starting in headless browser mode. Access at http://127.0.0.1:8000"
+            f"Starting in headless browser mode. Access at {url}"
         )
-        webbrowser.open("http://127.0.0.1:8000")
+        webbrowser.open(url)
         while True:
             time.sleep(1)
 
