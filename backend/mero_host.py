@@ -3965,7 +3965,27 @@ if __name__ == "__main__":
                 except:
                     pass
 
-        webview.start(private_mode=False, storage_path=storage_path)
+        try:
+            webview.start(gui="edgechromium", private_mode=False, storage_path=storage_path)
+        except Exception as e:
+            logger.error(f"[MeroHoster] Edge Chromium WebView2 failed to start: {e}")
+            import tkinter as tk
+            from tkinter import messagebox
+            root = tk.Tk()
+            root.withdraw()
+            root.attributes("-topmost", True)
+            messagebox.showwarning(
+                "Missing Microsoft Edge WebView2", 
+                "MeroHoster requires 'Microsoft Edge WebView2' to display the desktop app, but it is not installed on this PC.\n\n"
+                "Don't worry! We will now open the dashboard safely in your default web browser instead."
+            )
+            root.destroy()
+            import webbrowser
+            webbrowser.open(url)
+            
+            # Keep the backend alive
+            while True:
+                time.sleep(1)
         
         if keep_running_flag:
             import customtkinter as ctk
