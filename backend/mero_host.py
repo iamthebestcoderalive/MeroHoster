@@ -3127,10 +3127,26 @@ async def resolve_and_download(
     title = req.title or proj_data.get("title", req.project_id)
     icon_url = req.icon_url or proj_data.get("icon_url", "")
 
+    server_type = meta.get("type", "vanilla").lower()
+    loaders = ""
+    if server_type in ("paper", "spigot", "bukkit"):
+        loaders = '["paper","spigot","bukkit"]'
+    elif server_type == "purpur":
+        loaders = '["purpur","paper","spigot","bukkit"]'
+    elif server_type == "forge":
+        loaders = '["forge"]'
+    elif server_type == "neoforge":
+        loaders = '["neoforge","forge"]'
+    elif server_type == "fabric":
+        loaders = '["fabric"]'
+
+    url = f'https://api.modrinth.com/v2/project/{req.project_id}/version?game_versions=["{meta["version"]}"]'
+    if loaders:
+        import urllib.parse
+        url += f'&loaders={urllib.parse.quote(loaders)}'
+
     # get compatible version
-    r = await c.get(
-        f'https://api.modrinth.com/v2/project/{req.project_id}/version?game_versions=["{meta["version"]}"]'
-    )
+    r = await c.get(url)
     data = r.json()
     if not data:
         return  # no compatible version
@@ -3138,7 +3154,6 @@ async def resolve_and_download(
     v = data[0]
     fi = v["files"][0]
 
-    server_type = meta.get("type", "vanilla").lower()
     is_plugin_server = server_type in ("paper", "spigot", "purpur", "bukkit")
     mod_folder = "plugins" if is_plugin_server else "mods"
 
