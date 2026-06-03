@@ -485,6 +485,9 @@ nav li.active::before {
 }
 .console-right {
     overflow-y: auto;
+    position: sticky;
+    top: 0;
+    align-self: start;
 }
 
 .console-wrapper {

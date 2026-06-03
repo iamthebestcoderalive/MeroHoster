@@ -425,7 +425,7 @@ def capture(proc, name, conn_method="playit"):
                                 stderr=subprocess.STDOUT,
                                 text=True,
                                 bufsize=1,
-                                creationflags=subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0,
+                                creationflags=subprocess.CREATE_NO_WINDOW if hasattr(subprocess, 'CREATE_NO_WINDOW') else 0,
                             )
                             playit_procs[name] = pp
                             threading.Thread(target=read_playit, args=(pp, name), daemon=True).start()
@@ -515,7 +515,7 @@ def capture(proc, name, conn_method="playit"):
                             stderr=subprocess.STDOUT,
                             text=True,
                             bufsize=1,
-                            creationflags=subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0,
+                            creationflags=subprocess.CREATE_NO_WINDOW if hasattr(subprocess, 'CREATE_NO_WINDOW') else 0,
                         )
                         playit_procs[name] = pp
                         threading.Thread(target=read_playit, args=(pp, name), daemon=True).start()
@@ -823,6 +823,7 @@ def _download_jar(name, req_type, req_version, jar_path, server_path):
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
                 text=True,
+                creationflags=subprocess.CREATE_NO_WINDOW if hasattr(subprocess, 'CREATE_NO_WINDOW') else 0
             )
             for line in iter(proc.stdout.readline, ""):
                 if line:
@@ -1141,6 +1142,7 @@ def _boot_server_inner(name: str, state: dict):
         stderr=subprocess.STDOUT,
         text=True,
         bufsize=1,
+        creationflags=subprocess.CREATE_NO_WINDOW if hasattr(subprocess, 'CREATE_NO_WINDOW') else 0
     )
     state["process"] = mc
     state["phase"] = "running"
@@ -2140,17 +2142,57 @@ def send_command(name: str, req: CmdReq):
     return {"message": "Sent"}
 
 
+import json
+import re
+
+def parse_legacy_chat_to_json(msg: str):
+    color_map = {
+        '0': 'black', '1': 'dark_blue', '2': 'dark_green', '3': 'dark_aqua',
+        '4': 'dark_red', '5': 'dark_purple', '6': 'gold', '7': 'gray',
+        '8': 'dark_gray', '9': 'blue', 'a': 'green', 'b': 'aqua',
+        'c': 'red', 'd': 'light_purple', 'e': 'yellow', 'f': 'white'
+    }
+    format_map = {
+        'l': 'bold', 'm': 'strikethrough', 'n': 'underlined', 'o': 'italic', 'k': 'obfuscated'
+    }
+    parts = []
+    current_color = None
+    current_formats = []
+    
+    tokens = re.split(r'([§&][0-9a-fk-orA-FK-OR])', msg)
+    for token in tokens:
+        if not token: continue
+        if re.match(r'^[§&][0-9a-fk-orA-FK-OR]$', token):
+            code = token[1].lower()
+            if code == 'r':
+                current_color = None
+                current_formats = []
+            elif code in color_map:
+                current_color = color_map[code]
+                current_formats = []
+            elif code in format_map:
+                if format_map[code] not in current_formats:
+                    current_formats.append(format_map[code])
+        else:
+            part = {"text": token}
+            if current_color: part["color"] = current_color
+            for fmt in current_formats: part[fmt] = True
+            parts.append(part)
+    return parts if parts else [{"text": ""}]
+
 @app.post("/api/servers/{name}/chat")
 def send_chat(name: str, req: ChatReq):
     proc = server_state.get(name, {}).get("process")
     if not proc or proc.poll() is not None:
         raise HTTPException(400, "Not running")
+        
+    parts = parse_legacy_chat_to_json(req.message)
     if req.player:
-        cmd = f'tellraw @a [{{"text":"<{req.player}> "}},{{"text":"{req.message}"}}]'
+        final_json = [{"text": f"<{req.player}> "}] + parts
     else:
-        # Use tellraw without a sender to avoid the [Server] prefix
-        safe_msg = req.message.replace("\\", "\\\\").replace('"', '\\"')
-        cmd = f'tellraw @a {{"text":"{safe_msg}"}}'
+        final_json = parts
+        
+    cmd = f"tellraw @a {json.dumps(final_json)}"
     try:
         proc.stdin.write(cmd + "\n")
         proc.stdin.flush()
