@@ -25,14 +25,15 @@
 ## 🚀 How to Host a Server (For the Host)
 To run the server and access the web dashboard:
 
-1. Download the MeroHoster_Setup.exe from the Releases tab or Clone the Repo.
-2. Double-click the `start_mero.bat` file.
-3. The dependencies will automatically install, the backend will start, and the MeroHoster will open on your computer!
-4. Click `Create Server` to create a new server.
-5. Choose a name and/or a description, select the connection method, the platform and version, and select the amount of RAM utilized by the server.
-6. Once you're done, Click create.
-7. You'll be redirected to the setup guide and get greeted by a tuto.
-8. Once the tuto is completed, click the `Start` button on the top to start the server for the first time.
+1. Go to the **Releases** tab on the right side of this GitHub page.
+2. Download the latest `MeroHoster_Installer_v2.exe` (or the newest installer `.exe`).
+3. Run the installer wizard to install MeroHoster on your PC.
+4. Launch MeroHoster from your new Desktop shortcut or Start Menu!
+5. Click `Create Server` to create a new server. *(Pro tip: You can also just right-click any existing Minecraft server folder on your PC and select **"Open Server in MeroHoster"** to magically import it!)*
+6. Choose a name and/or a description, select the connection method, the platform and version, and select the amount of RAM utilized by the server.
+7. Once you're done, Click create.
+8. You'll be redirected to the setup guide and get greeted by a tuto.
+9. Once the tuto is completed, click the `Start` button on the top to start the server for the first time.
 
 ---
 
@@ -40,9 +41,9 @@ To run the server and access the web dashboard:
 *__Players__* do **not** need to download the source code, run any commands, or use MeroHoster. Instead, they just use the custom **MeroClient**.
 
 1. Go to the **Releases** tab on the right side of this GitHub page.
-2. Download the latest *`MeroClient_Installer.exe`*.
-3. Open the Install Wizard, Fill it and Click Install.
-4. In the MeroClient app, click __*`Add Server`*__, paste the Invite code provided by the server host in the box and click *__Check__*.
+2. Download the latest *`MeroClient_Installer_v2.exe`* (or the newest installer `.exe`).
+3. Run the setup wizard to fully install MeroClient on your PC. (It includes an auto-updater, so you only have to install it once!)
+4. Open MeroClient from your Desktop. Click __*`Add Server`*__, paste the Invite code provided by the server host in the box and click *__Check__*.
 5. If the Code is valid, browse to your correspondant instance folder. 
 *  5.5: (Optional) If you can't run resourcepacks and shaders, or just wanna have your own, uncheck the boxes above.
 6. click *Sync & Connect*, the app will configure the world, install any mods ( if available ) and connect you.
