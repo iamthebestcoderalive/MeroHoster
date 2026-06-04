@@ -482,6 +482,8 @@ nav li.active::before {
 .console-left {
     display: flex;
     flex-direction: column;
+    min-height: 0;
+    height: 100%;
 }
 .console-right {
     overflow-y: auto;

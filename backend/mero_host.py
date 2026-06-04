@@ -393,7 +393,7 @@ def capture(proc, name, conn_method="playit"):
                         _done_logged = True
                         
                         def update_manifest_status_sync(server_name: str, status: str):
-                            import requests
+                            import httpx
                             try:
                                 meta_path = os.path.join(sdir(server_name), "meta.json")
                                 if not os.path.exists(meta_path):
@@ -402,11 +402,11 @@ def capture(proc, name, conn_method="playit"):
                                     meta = json.load(f)
                                 m_url = meta.get("manifest_url", "")
                                 if "kvdb.io" in m_url:
-                                    r = requests.get(m_url, timeout=5)
+                                    r = httpx.get(m_url, timeout=5)
                                     if r.status_code == 200:
                                         data = r.json()
                                         data["server_status"] = status
-                                        requests.post(m_url, json=data, timeout=5)
+                                        httpx.post(m_url, json=data, timeout=5)
                             except Exception as e:
                                 logger.error(f"Failed to update manifest status: {e}")
 
@@ -421,7 +421,7 @@ def capture(proc, name, conn_method="playit"):
                             pdir = os.path.join(sdir(name), ".playit")
                             os.makedirs(pdir, exist_ok=True)
                             pp = subprocess.Popen(
-                                [PLAYIT_EXE, "start"],
+                                [PLAYIT_EXE, "--secret_path", "playit.toml", "start"],
                                 cwd=pdir,
                                 stdout=subprocess.PIPE,
                                 stderr=subprocess.STDOUT,
@@ -472,7 +472,8 @@ def capture(proc, name, conn_method="playit"):
                 stripped = line.rstrip()
                 # If it's a standard log line, let the tail_log_file thread handle it
                 if not log4j_pattern.match(stripped):
-                    log(name, stripped)
+                    if not stripped.startswith("Slim "):
+                        log(name, stripped)
                     
                 # We also need to check here in case it's not logged to latest.log or the tailer misses it
                 if (
@@ -481,7 +482,7 @@ def capture(proc, name, conn_method="playit"):
                     _done_logged = True
 
                     def update_manifest_status_sync(server_name: str, status: str):
-                        import requests
+                        import httpx
 
                         try:
                             meta_path = os.path.join(sdir(server_name), "meta.json")
@@ -491,11 +492,11 @@ def capture(proc, name, conn_method="playit"):
                                 meta = json.load(f)
                             m_url = meta.get("manifest_url", "")
                             if "kvdb.io" in m_url:
-                                r = requests.get(m_url, timeout=5)
+                                r = httpx.get(m_url, timeout=5)
                                 if r.status_code == 200:
                                     data = r.json()
                                     data["server_status"] = status
-                                    requests.post(m_url, json=data, timeout=5)
+                                    httpx.post(m_url, json=data, timeout=5)
                         except Exception as e:
                             logger.error(f"Failed to update manifest status: {e}")
 
@@ -566,7 +567,7 @@ def capture(proc, name, conn_method="playit"):
                     meta = json.load(f)
                 signal_bucket = meta.get("signal_bucket")
                 if signal_bucket:
-                    requests.put(signal_bucket, json={"status": "offline"}, headers={"Accept": "application/json", "Content-Type": "application/json"}, timeout=5)
+                    httpx.put(signal_bucket, json={"status": "offline"}, headers={"Accept": "application/json", "Content-Type": "application/json"}, timeout=5)
         except Exception as e:
             logger.error(f"Failed to push offline status: {e}")
 
@@ -601,7 +602,7 @@ def run_mero_p2p(host, name):
         host.logger = mero_logger
         if host.start():
             import base64
-            import requests
+            import httpx
 
             m_url = ""
             meta = {}
@@ -618,7 +619,7 @@ def run_mero_p2p(host, name):
             signal_bucket = meta.get("signal_bucket")
             if not signal_bucket:
                 try:
-                    r = requests.post("https://jsonblob.com/api/jsonBlob", json={"status": "init"}, headers={"Accept": "application/json"}, timeout=10)
+                    r = httpx.post("https://jsonblob.com/api/jsonBlob", json={"status": "init"}, headers={"Accept": "application/json"}, timeout=10)
                     if r.status_code in (200, 201):
                         signal_bucket = "https://jsonblob.com" + r.headers.get("Location", "")
                         meta["signal_bucket"] = signal_bucket
@@ -648,7 +649,7 @@ def run_mero_p2p(host, name):
 
             if signal_bucket:
                 try:
-                    requests.put(signal_bucket, json={"e": enc_payload}, headers={"Accept": "application/json", "Content-Type": "application/json"}, timeout=10)
+                    httpx.put(signal_bucket, json={"e": enc_payload}, headers={"Accept": "application/json", "Content-Type": "application/json"}, timeout=10)
                     invite_b64 = base64.b64encode(f"{signal_bucket}|{enc_key}".encode()).decode()
                 except Exception as e:
                     log(name, f"[Mero] ⚠️ Signal Post Failed: {e}")
@@ -1488,9 +1489,9 @@ async def check_update():
 async def install_update(background_tasks: BackgroundTasks):
     def run_update():
         import tempfile
-        import requests
+        import httpx
         try:
-            r = requests.get("https://api.github.com/repos/iamthebestcoderalive/MeroHoster/releases/latest", headers={"User-Agent": "MeroHost/1.0"})
+            r = httpx.get("https://api.github.com/repos/iamthebestcoderalive/MeroHoster/releases/latest", headers={"User-Agent": "MeroHost/1.0"})
             if r.status_code == 200:
                 assets = r.json().get("assets", [])
                 zip_url = None
@@ -1500,7 +1501,7 @@ async def install_update(background_tasks: BackgroundTasks):
                         break
                 if zip_url:
                     log("System", f"[Mero] ⬇ Downloading update from {zip_url}...")
-                    zip_r = requests.get(zip_url)
+                    zip_r = httpx.get(zip_url)
                     with tempfile.NamedTemporaryFile(delete=False, suffix=".zip") as tf:
                         tf.write(zip_r.content)
                         tf_path = tf.name
@@ -1633,7 +1634,7 @@ def list_servers():
 @app.post("/api/servers/{name}/start")
 def start_server(name: str):
     def update_manifest_status_sync(server_name: str, status: str):
-        import requests
+        import httpx
 
         try:
             meta_path = os.path.join(sdir(server_name), "meta.json")
@@ -1643,11 +1644,11 @@ def start_server(name: str):
                 meta = json.load(f)
             m_url = meta.get("manifest_url", "")
             if "kvdb.io" in m_url:
-                r = requests.get(m_url, timeout=5)
+                r = httpx.get(m_url, timeout=5)
                 if r.status_code == 200:
                     data = r.json()
                     data["server_status"] = status
-                    requests.post(m_url, json=data, timeout=5)
+                    httpx.post(m_url, json=data, timeout=5)
         except Exception as e:
             logger.error(f"Failed to update manifest status: {e}")
 
@@ -4025,7 +4026,7 @@ if __name__ == "__main__":
                     pass
 
         try:
-            webview.start(gui="edgechromium", private_mode=False, storage_path=storage_path)
+            webview.start(gui="edgechromium", private_mode=False, storage_path=storage_path, icon=os.path.join(BASE_DIR, "static", "logo.ico"))
         except Exception as e:
             logger.error(f"[MeroHoster] Edge Chromium WebView2 failed to start: {e}")
             import tkinter as tk
@@ -4047,26 +4048,22 @@ if __name__ == "__main__":
                 time.sleep(1)
         
         if keep_running_flag:
-            import customtkinter as ctk
+            import ctypes
             import sys
             
-            app = ctk.CTk()
-            app.title("MeroHoster - Background Process")
-            app.geometry("350x150")
-            app.configure(fg_color="#0d0f13")
+            MB_ICONINFORMATION = 0x40
+            MB_OK = 0x0
+            MB_SETFOREGROUND = 0x10000
             
-            ctk.CTkLabel(app, text="MeroHoster Dashboard Closed", font=("Arial", 16, "bold"), text_color="#39FF14").pack(pady=(20, 5))
-            ctk.CTkLabel(app, text="Minecraft servers are still running in the background.", text_color="gray").pack(pady=(0, 15))
+            ctypes.windll.user32.MessageBoxW(0, 
+                "MeroHoster Dashboard is closed, but your Minecraft servers are still running in the background.\n\n"
+                "To completely shut down all servers and exit MeroHoster, click OK.",
+                "MeroHoster - Background Process", 
+                MB_ICONINFORMATION | MB_OK | MB_SETFOREGROUND)
             
-            def full_shutdown():
-                for name in list(server_state.keys()):
-                    stop_server(name, force=True)
-                app.destroy()
-                sys.exit(0)
-                
-            ctk.CTkButton(app, text="Shutdown All Servers & Exit", fg_color="#FF3131", hover_color="#c0392b", command=full_shutdown).pack()
-            app.protocol("WM_DELETE_WINDOW", full_shutdown)
-            app.mainloop()
+            for name in list(server_state.keys()):
+                stop_server(name, force=True)
+            sys.exit(0)
             
     else:
         url = "http://127.0.0.1:8000"

@@ -1337,7 +1337,7 @@ function initConsoleAutocomplete() {
         return;
     }
     let match = currentSuggestions[Math.max(0, autocompleteSelectedIndex)];
-    if (match.toLowerCase().startsWith(val.toLowerCase())) {
+    if (match && match.toLowerCase().startsWith(val.toLowerCase())) {
         ghostTyped.textContent = val; 
         ghostSuggest.textContent = match.substring(val.length);
     } else {
@@ -1351,7 +1351,10 @@ function initConsoleAutocomplete() {
       e.preventDefault();
       if (box.style.display === "flex" && currentSuggestions.length > 0) {
         // Either use the selected index, or the top suggestion if -1 (so Tab or Enter on ghost text works)
-        inp.value = currentSuggestions[Math.max(0, autocompleteSelectedIndex)];
+        let match = currentSuggestions[Math.max(0, autocompleteSelectedIndex)];
+        if (match) {
+            inp.value = match;
+        }
         box.style.display = "none";
         ghostTyped.textContent = "";
         ghostSuggest.textContent = "";
@@ -1381,8 +1384,11 @@ function initConsoleAutocomplete() {
       } else if (e.key === "Tab") {
         e.preventDefault();
         if (currentSuggestions.length > 0) {
-          inp.value = currentSuggestions[Math.max(0, autocompleteSelectedIndex)];
-          inp.dispatchEvent(new Event('input')); // trigger update
+          let match = currentSuggestions[Math.max(0, autocompleteSelectedIndex)];
+          if (match) {
+              inp.value = match;
+              inp.dispatchEvent(new Event('input')); // trigger update
+          }
         }
       } else if (e.key === "Escape") {
         box.style.display = "none";

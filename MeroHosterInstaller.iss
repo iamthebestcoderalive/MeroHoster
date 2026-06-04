@@ -19,8 +19,8 @@ DisableDirPage=no
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "bundled_python\*"; DestDir: "{app}\python"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "backend\*"; DestDir: "{app}\backend"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "bundled_python\*"; DestDir: "{app}\python"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "*\__pycache__\*,__pycache__\*,*.pyc,*.pyo"
+Source: "backend\*"; DestDir: "{app}\backend"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "*\__pycache__\*,__pycache__\*,*\.webview_storage\*,.webview_storage\*,*.pyc,*.pyo"
 Source: "MeroHoster.ico"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
