@@ -1755,8 +1755,38 @@
                                         />
                                     </div>
                                     <div class="form-group">
+                                        <label>Target Player</label>
+                                        <input
+                                            type="text"
+                                            id="chat-target"
+                                            class="glass-input"
+                                            placeholder="Player name (or @a for all)"
+                                            value="@a"
+                                            list="chat-target-list"
+                                        />
+                                        <datalist id="chat-target-list"></datalist>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Message Color</label>
+                                        <select id="chat-color-select" class="glass-input">
+                                            <option value="white">White</option>
+                                            <option value="red">Red</option>
+                                            <option value="gold">Gold</option>
+                                            <option value="yellow">Yellow</option>
+                                            <option value="green">Green</option>
+                                            <option value="aqua">Aqua</option>
+                                            <option value="blue">Blue</option>
+                                            <option value="light_purple">Pink</option>
+                                            <option value="dark_purple">Purple</option>
+                                            <option value="dark_red">Dark Red</option>
+                                            <option value="dark_green">Dark Green</option>
+                                            <option value="gray">Gray</option>
+                                            <option value="dark_gray">Dark Gray</option>
+                                            <option value="black">Black</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
                                         <label>Message</label>
-                                        <div id="chat-color-bar"></div>
                                         <textarea
                                             id="chat-message"
                                             class="glass-input"
@@ -1795,9 +1825,7 @@
                                                     margin-right: 4px;
                                                 "
                                             ></i>
-                                            <b>No username</b> → broadcasts via
-                                            <code>tellraw @a</code> (no [Server]
-                                            prefix)
+                                            <b>Target Player</b> → send to a specific player username, or @a for everyone
                                         </p>
                                         <p>
                                             <i
@@ -1809,9 +1837,7 @@
                                                     margin-right: 4px;
                                                 "
                                             ></i>
-                                            <b>With username</b> → uses
-                                            <code>tellraw</code> to fake a chat
-                                            message
+                                            <b>No username</b> → broadcasts via tellraw (no [Server] prefix)
                                         </p>
                                         <p>
                                             <i
@@ -1823,9 +1849,7 @@
                                                     margin-right: 4px;
                                                 "
                                             ></i>
-                                            Use <b>§c</b> red, <b>§a</b> green,
-                                            <b>§e</b> yellow, <b>§l</b> bold —
-                                            or click the colors above
+                                            <b>With username</b> → fakes a chat message from that player
                                         </p>
                                     </div>
                                 </div>
@@ -3175,10 +3199,38 @@
                         <div
                             style="
                                 display: grid;
-                                grid-template-columns: 1fr 1fr 1fr;
+                                grid-template-columns: 1fr 1fr;
                                 gap: 16px;
                             "
                         >
+                            <div class="panel">
+                                <h3
+                                    style="
+                                        display: flex;
+                                        align-items: center;
+                                        gap: 8px;
+                                        margin-bottom: 14px;
+                                    "
+                                >
+                                    <i
+                                        data-lucide="activity"
+                                        style="
+                                            width: 16px;
+                                            height: 16px;
+                                            color: var(--primary);
+                                        "
+                                    ></i>
+                                    Online Now
+                                </h3>
+                                <div id="pm-online-list">
+                                    <p
+                                        class="text-muted"
+                                        style="font-size: 0.85rem"
+                                    >
+                                        Offline
+                                    </p>
+                                </div>
+                            </div>
                             <div class="panel">
                                 <h3
                                     style="

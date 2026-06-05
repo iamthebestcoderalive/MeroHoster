@@ -725,7 +725,7 @@ def read_playit(proc, name):
 def _download_jar(name, req_type, req_version, jar_path, server_path):
     """Synchronous jar download using httpx - safe to call from a thread."""
     os.makedirs(VERSIONS_CACHE_DIR, exist_ok=True)
-    is_single_jar = req_type in ["paper", "purpur", "fabric"]
+    is_single_jar = req_type in ["paper", "purpur", "fabric", "vanilla"]
     cached_jar_path = os.path.join(VERSIONS_CACHE_DIR, f"{req_type}-{req_version}.jar")
 
     if is_single_jar and os.path.exists(cached_jar_path):
@@ -735,7 +735,28 @@ def _download_jar(name, req_type, req_version, jar_path, server_path):
         return
 
     with httpx.Client(timeout=600, follow_redirects=True) as client:
-        if req_type == "paper":
+        if req_type == "vanilla":
+            log(name, f"[Mero] 🔍 Fetching official Vanilla {req_version} link…")
+            m_res = client.get("https://launchermeta.mojang.com/mc/game/version_manifest.json")
+            m_res.raise_for_status()
+            manifest = m_res.json()
+            
+            ver_url = next((v["url"] for v in manifest["versions"] if v["id"] == req_version), None)
+            if not ver_url:
+                raise RuntimeError(f"Vanilla Minecraft version {req_version} not found in Mojang manifest.")
+                
+            p_res = client.get(ver_url)
+            p_res.raise_for_status()
+            jar_url = p_res.json()["downloads"]["server"]["url"]
+            
+            log(name, f"[Mero] ⬇  Downloading Vanilla {req_version} server.jar…")
+            data = client.get(jar_url).raise_for_status().content
+            with open(cached_jar_path, "wb") as f:
+                f.write(data)
+            os.makedirs(os.path.dirname(jar_path), exist_ok=True)
+            shutil.copy(cached_jar_path, jar_path)
+
+        elif req_type == "paper":
             log(name, f"[Mero] 🔍 Fetching latest Paper build for {req_version}…")
             r = client.get(
                 f"https://api.papermc.io/v2/projects/paper/versions/{req_version}/builds"
@@ -1188,6 +1209,8 @@ class CmdReq(BaseModel):
 class ChatReq(BaseModel):
     message: str
     player: str = ""  # if set, prefix as <player>
+    target: str = "@a"
+    color: str = "white"
 
 
 class FileContentReq(BaseModel):
@@ -2189,13 +2212,14 @@ def send_chat(name: str, req: ChatReq):
     if not proc or proc.poll() is not None:
         raise HTTPException(400, "Not running")
         
-    parts = parse_legacy_chat_to_json(req.message)
+    final_json = []
+    
     if req.player:
-        final_json = [{"text": f"<{req.player}> "}] + parts
-    else:
-        final_json = parts
+        final_json.append({"text": f"<{req.player}> ", "color": "gray"})
         
-    cmd = f"tellraw @a {json.dumps(final_json)}"
+    final_json.append({"text": req.message, "color": req.color})
+        
+    cmd = f"tellraw {req.target} {json.dumps(final_json)}"
     try:
         proc.stdin.write(cmd + "\n")
         proc.stdin.flush()
@@ -3993,6 +4017,89 @@ if __name__ == "__main__":
         time.sleep(0.1)
 
     if HAS_WEBVIEW:
+        try:
+            import winreg
+            import ctypes
+            import urllib.request
+            import tempfile
+            import subprocess
+            import tkinter as tk
+            from tkinter import ttk
+            
+            # Check for local WebView2 Fixed Version distribution
+            local_wv = os.path.join(os.path.dirname(os.path.abspath(__file__)), "webview2_runtime")
+            installed = False
+            
+            if os.path.exists(local_wv) and os.path.isdir(local_wv):
+                # Search for the actual folder containing msedgewebview2.exe
+                found_path = None
+                for root_dir, dirs, files in os.walk(local_wv):
+                    if "msedgewebview2.exe" in (f.lower() for f in files):
+                        found_path = root_dir
+                        break
+                if found_path:
+                    os.environ["WEBVIEW2_BROWSER_EXECUTABLE_FOLDER"] = found_path
+                    installed = True
+            
+            if not installed:
+                keys = [
+                    (winreg.HKEY_LOCAL_MACHINE, r'SOFTWARE\WOW6432Node\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}'),
+                    (winreg.HKEY_LOCAL_MACHINE, r'SOFTWARE\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}'),
+                    (winreg.HKEY_CURRENT_USER, r'Software\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}')
+                ]
+                for hkey, path in keys:
+                    try:
+                        with winreg.OpenKey(hkey, path) as key:
+                            ver, _ = winreg.QueryValueEx(key, 'pv')
+                            if ver and ver != '0.0.0.0':
+                                installed = True
+                                break
+                    except OSError:
+                        pass
+                        
+            if not installed:
+                res = ctypes.windll.user32.MessageBoxW(0, 
+                    "MeroHoster requires the Microsoft Edge WebView2 Runtime, which is missing from your system.\n\nClick OK to automatically download and install it now (this may take a few minutes).", 
+                    "Missing Requirement", 
+                    0x01 | 0x40) # MB_OKCANCEL | MB_ICONINFORMATION
+                if res == 1: # IDOK
+                    bootstrapper_path = os.path.join(tempfile.gettempdir(), "MicrosoftEdgeWebview2Setup.exe")
+                    urllib.request.urlretrieve("https://go.microsoft.com/fwlink/p/?LinkId=2124703", bootstrapper_path)
+                    subprocess.run([bootstrapper_path, "/silent", "/install"], check=True)
+                    
+                    # Show progress window while polling registry
+                    root = tk.Tk()
+                    root.title("MeroHoster Setup")
+                    root.geometry("380x130")
+                    root.eval('tk::PlaceWindow . center')
+                    tk.Label(root, text="Installing Microsoft Edge WebView2 Runtime...\nPlease wait, this may take a few minutes.", pady=15).pack()
+                    progress = ttk.Progressbar(root, mode='indeterminate')
+                    progress.pack(fill=tk.X, padx=20)
+                    progress.start(10)
+                    
+                    def check_done():
+                        installed_now = False
+                        for hkey, path in keys:
+                            try:
+                                with winreg.OpenKey(hkey, path) as key:
+                                    ver, _ = winreg.QueryValueEx(key, 'pv')
+                                    if ver and ver != '0.0.0.0':
+                                        installed_now = True
+                                        break
+                            except OSError:
+                                pass
+                        if installed_now:
+                            root.destroy()
+                        else:
+                            root.after(2000, check_done)
+                            
+                    root.after(2000, check_done)
+                    root.mainloop()
+                else:
+                    sys.exit(0)
+        except Exception as e:
+            logger.error(f"Error checking/installing WebView2: {e}")
+
         url = "http://127.0.0.1:8000"
         if imported_server:
             import urllib.parse

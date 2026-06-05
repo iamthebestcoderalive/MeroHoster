@@ -740,6 +740,18 @@ async function fetchStats() {
       `/servers/${encodeURIComponent(currentServer)}/stats`,
     );
     window.latestServerState = st;
+    
+    const targetList = document.getElementById("chat-target-list");
+    if (targetList) {
+        let html = '<option value="@a">All Players</option><option value="@r">Random Player</option>';
+        if (st.players && st.players.sample) {
+            st.players.sample.forEach(p => {
+                if (p.name) html += `<option value="${p.name}">${p.name}</option>`;
+            });
+        }
+        targetList.innerHTML = html;
+    }
+    
     setButtons(st.phase);
 
     const badge = {
@@ -1269,6 +1281,13 @@ async function sendConsoleCommand() {
     return;
   }
 
+  const baseCmd = cmd.startsWith("/") ? cmd.substring(1).split(" ")[0].toLowerCase() : cmd.split(" ")[0].toLowerCase();
+  let custom = JSON.parse(localStorage.getItem("meroCustomCommands") || "[]");
+  if (!MC_COMMANDS.includes(baseCmd) && !custom.includes(baseCmd)) {
+      custom.push(baseCmd);
+      localStorage.setItem("meroCustomCommands", JSON.stringify(custom));
+  }
+
   await apiPost(`/servers/${encodeURIComponent(currentServer)}/command`, {
     command: cmd,
   });
@@ -1313,12 +1332,13 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
+const MC_COMMANDS = [
+  "help", "tp", "op", "deop", "kick", "ban", "pardon", "stop", "say", 
+  "time", "weather", "gamemode", "give", "clear", "difficulty", "seed",
+  "whitelist", "gamerule", "kill", "list", "save-all", "save-off", "save-on"
+];
+
 function initConsoleAutocomplete() {
-  const MC_COMMANDS = [
-    "help", "tp", "op", "deop", "kick", "ban", "pardon", "stop", "say", 
-    "time", "weather", "gamemode", "give", "clear", "difficulty", "seed",
-    "whitelist", "gamerule", "kill", "list", "save-all", "save-off", "save-on"
-  ];
   let autocompleteSelectedIndex = -1;
   let currentSuggestions = [];
 
@@ -1426,7 +1446,9 @@ function initConsoleAutocomplete() {
     currentSuggestions = [];
     
     if (parts.length === 1) {
-      currentSuggestions = MC_COMMANDS.filter(c => c.startsWith(cmd)).map(c => "/" + c);
+      const customCmds = JSON.parse(localStorage.getItem("meroCustomCommands") || "[]");
+      const allCmds = [...new Set([...MC_COMMANDS, ...customCmds])];
+      currentSuggestions = allCmds.filter(c => c.startsWith(cmd)).map(c => "/" + c);
     } else if (parts.length === 2 && ["tp", "op", "deop", "kick", "ban", "pardon", "give"].includes(cmd)) {
       const players = window.latestServerState?.players?.sample || [];
       const pnames = players.map(p => p.name);
@@ -1494,13 +1516,17 @@ async function copyConsoleLogs() {
 async function sendChat() {
   const msg = document.getElementById("chat-message").value.trim();
   const player = document.getElementById("chat-player").value.trim();
+  const target = document.getElementById("chat-target").value.trim() || "@a";
+  const color = document.getElementById("chat-color-select").value;
   if (!msg) return;
   await apiPost(`/servers/${encodeURIComponent(currentServer)}/chat`, {
     message: msg,
     player,
+    target,
+    color,
   });
   document.getElementById("chat-message").value = "";
-  showToast(player ? `Sent as <${player}>` : "Announcement sent!");
+  showToast(player ? `Sent to ${target} as <${player}>` : `Announcement sent to ${target}!`);
 }
 
 // ─── Config ───────────────────────────────────────────────────────────────────
@@ -3257,18 +3283,22 @@ function playerCard(player, listType) {
   const avatar = avatarUrl(uuid, name);
   const isWhitelisted = listType === "whitelist";
   const isBanned = listType === "banned";
+  const isOnline = listType === "online";
 
   const wlBtn = isWhitelisted
-    ? `<button class="btn danger outline small" style="min-width:0;padding:4px 8px" onclick="whitelistRemove('${name}','${uuid}')"><i data-lucide="user-minus" style="width:13px;height:13px"></i></button>`
-    : `<button class="btn success outline small" style="min-width:0;padding:4px 8px" onclick="whitelistAdd('${name}','${uuid}')"><i data-lucide="user-plus" style="width:13px;height:13px"></i></button>`;
+    ? `<button class="btn danger outline small" style="min-width:0;padding:4px 8px" onclick="whitelistRemove('${name}','${uuid}')" title="Remove from Whitelist"><i data-lucide="user-minus" style="width:13px;height:13px"></i></button>`
+    : `<button class="btn success outline small" style="min-width:0;padding:4px 8px" onclick="whitelistAdd('${name}','${uuid}')" title="Add to Whitelist"><i data-lucide="user-plus" style="width:13px;height:13px"></i></button>`;
   const banBtn = isBanned
-    ? `<button class="btn outline small" style="min-width:0;padding:4px 8px" onclick="pmUnban('${name}','${uuid}')"><i data-lucide="shield-check" style="width:13px;height:13px"></i></button>`
-    : `<button class="btn danger outline small" style="min-width:0;padding:4px 8px" onclick="pmBan('${name}','${uuid}')"><i data-lucide="ban" style="width:13px;height:13px"></i></button>`;
+    ? `<button class="btn outline small" style="min-width:0;padding:4px 8px" onclick="pmUnban('${name}','${uuid}')" title="Unban"><i data-lucide="shield-check" style="width:13px;height:13px"></i></button>`
+    : `<button class="btn danger outline small" style="min-width:0;padding:4px 8px" onclick="pmBan('${name}','${uuid}')" title="Ban"><i data-lucide="ban" style="width:13px;height:13px"></i></button>`;
+  const kickBtn = isOnline
+    ? `<button class="btn warning outline small" style="min-width:0;padding:4px 8px;margin-left:4px" onclick="pmKick('${name}')" title="Kick Player"><i data-lucide="user-x" style="width:13px;height:13px"></i></button>`
+    : "";
 
   return `<div class="player-card">
         <img src="${avatar}" alt="${name}" onerror="this.src='/static/logo.png'">
         <span class="player-card-name">${name}</span>
-        <div class="player-card-actions">${wlBtn}${banBtn}</div>
+        <div class="player-card-actions">${wlBtn}${banBtn}${kickBtn}</div>
     </div>`;
 }
 
@@ -3287,6 +3317,14 @@ async function loadPlayers() {
       }
       lucide.createIcons({ nodes: [listEl] });
     };
+    
+    const onlinePlayers = window.latestServerState?.players?.sample || [];
+    renderList(
+      document.getElementById("pm-online-list"),
+      onlinePlayers,
+      "online"
+    );
+    
     renderList(
       document.getElementById("pm-whitelist-list"),
       data.whitelist,
@@ -3355,9 +3393,16 @@ async function pmBan(name, uuid) {
     name,
     uuid,
   });
-  showToast(`\u{1f6ab} ${name} banned`);
-  loadPlayers();
+  await sendConsoleCommand("ban " + name);
+  setTimeout(loadPlayers, 1000);
 }
+
+async function pmKick(name) {
+  if (!confirm(`Are you sure you want to kick ${name}?`)) return;
+  await sendConsoleCommand("kick " + name);
+  setTimeout(loadPlayers, 1000);
+}
+
 async function pmUnban(name, uuid) {
   await apiPost(`/servers/${encodeURIComponent(currentServer)}/unban`, {
     name,
