@@ -811,7 +811,8 @@ class MeroWizard(ctk.CTk):
                         enc_hex = data["e"]
                     else:
                         self.payload = data
-                    if not hasattr(self, "payload"): self.payload = {}
+                    if self.payload is None: 
+                        self.payload = {}
                     self.payload["signal_bucket"] = sig_url
                 else:
                     self.auth_error_lbl.configure(text="Failed to resolve Invite Code")

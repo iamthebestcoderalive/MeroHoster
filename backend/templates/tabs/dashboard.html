@@ -1,0 +1,523 @@
+<!-- ── Dashboard ──────────────────────────────────────────── -->
+                    <div
+                        id="tab-dashboard"
+                        class="tab-content active"
+                        style="
+                            display: flex;
+                            flex-direction: column;
+                            gap: 12px;
+                            height: 100%;
+                        "
+                    >
+                        <!-- Premium Dashboard Header -->
+                        <div class="dash-header">
+                            <div class="dash-header-left">
+                                <div
+                                    class="server-icon-container"
+                                    id="dashboard-logo-container"
+                                    onclick="
+                                        document
+                                            .getElementById(
+                                                'server-icon-upload',
+                                            )
+                                            .click()
+                                    "
+                                >
+                                    <img
+                                        id="dash-server-icon"
+                                        src="/static/logo.png"
+                                        onerror="
+                                            this.src = '/static/logo.png';
+                                            this.onerror = null;
+                                        "
+                                    />
+                                    <div class="server-icon-hover">Edit</div>
+                                </div>
+                                <input
+                                    type="file"
+                                    id="server-icon-upload"
+                                    style="display: none"
+                                    accept="image/*"
+                                    onchange="openLogoEditor(event)"
+                                />
+                                <div class="dash-header-info">
+                                    <h2 class="page-title" id="dash-title">
+                                        Dashboard
+                                    </h2>
+                                    <div
+                                        id="stat-status"
+                                        class="status-wrapper"
+                                    >
+                                        <span class="badge stopped"
+                                            >● Offline</span
+                                        >
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Quick package counters -->
+                            <div class="dash-header-right">
+                                <div class="dash-stat-tag tag-mods">
+                                    <span class="dot">●</span> <span id="dash-mods-label">Mods</span>
+                                    <span id="dash-mods" class="count">0</span>
+                                </div>
+                                <div class="dash-stat-tag tag-rp">
+                                    <span class="dot">●</span> Resource Packs
+                                    <span id="dash-rp" class="count">0</span>
+                                </div>
+                                <div class="dash-stat-tag tag-sp">
+                                    <span class="dot">●</span> Shaders
+                                    <span id="dash-sp" class="count">0</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Main 2-column body -->
+                        <div class="dash-body">
+                            <!-- LEFT column: Live Chart + Metrics -->
+                            <div class="dash-col-main">
+                                <!-- Performance Monitor Card -->
+                                <div class="dash-card card-chart">
+                                    <div class="card-header">
+                                        <div class="card-title">
+                                            <i
+                                                data-lucide="activity"
+                                                class="chart-icon"
+                                            ></i>
+                                            Live Performance
+                                        </div>
+                                        <span
+                                            id="chart-status-label"
+                                            class="chart-status"
+                                            >Waiting for data…</span
+                                        >
+                                    </div>
+                                    <div class="chart-wrapper">
+                                        <canvas id="stats-chart"></canvas>
+                                    </div>
+                                </div>
+
+                                <!-- Metric Cards Row -->
+                                <div class="metric-row-grid">
+                                    <!-- CPU Card -->
+                                    <div class="metric-card cpu">
+                                        <div class="metric-header">
+                                            <i data-lucide="cpu"></i>
+                                            CPU Usage
+                                        </div>
+                                        <div class="metric-body">
+                                            <div
+                                                class="metric-value"
+                                                id="stat-cpu"
+                                            >
+                                                —
+                                            </div>
+                                            <div
+                                                class="metric-sub"
+                                                id="stat-cpu-sub"
+                                            >
+                                                of 200%
+                                            </div>
+                                        </div>
+                                        <div class="progress-bar">
+                                            <div
+                                                class="progress-fill"
+                                                id="bar-cpu"
+                                                style="width: 0"
+                                            ></div>
+                                        </div>
+                                    </div>
+
+                                    <!-- RAM Card -->
+                                    <div class="metric-card ram">
+                                        <div class="metric-header">
+                                            <i data-lucide="memory-stick"></i>
+                                            RAM Usage
+                                        </div>
+                                        <div class="metric-body">
+                                            <div
+                                                class="metric-value"
+                                                id="stat-mem"
+                                            >
+                                                —
+                                            </div>
+                                            <div
+                                                class="metric-sub"
+                                                id="stat-mem-sub"
+                                            >
+                                                of 6 GB
+                                            </div>
+                                        </div>
+                                        <div class="progress-bar">
+                                            <div
+                                                class="progress-fill"
+                                                id="bar-mem"
+                                                style="width: 0"
+                                            ></div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Disk Card -->
+                                    <div class="metric-card disk">
+                                        <div class="metric-header">
+                                            <i data-lucide="hard-drive"></i>
+                                            Storage
+                                        </div>
+                                        <div class="metric-body">
+                                            <div
+                                                class="metric-value"
+                                                id="stat-disk"
+                                            >
+                                                —
+                                            </div>
+                                            <div
+                                                class="metric-sub"
+                                                id="stat-disk-sub"
+                                            >
+                                                Unlimited
+                                            </div>
+                                        </div>
+                                        <div class="progress-bar">
+                                            <div
+                                                class="progress-fill"
+                                                id="bar-disk"
+                                                style="width: 4%"
+                                            ></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- RIGHT column: compact network + specs -->
+                            <div class="dash-col-side">
+                                <!-- Card 1: Session & Network -->
+                                <div class="dash-card card-session-net">
+                                    <div class="card-title-compact">
+                                        <i
+                                            data-lucide="activity"
+                                            class="title-icon-status"
+                                        ></i>
+                                        Session & Network
+                                    </div>
+
+                                    <div class="status-grid">
+                                        <!-- Uptime Row -->
+                                        <div class="status-item">
+                                            <span class="status-label">
+                                                <i data-lucide="clock"></i>
+                                                Uptime
+                                            </span>
+                                            <span
+                                                class="status-value"
+                                                id="stat-uptime"
+                                                >—</span
+                                            >
+                                        </div>
+                                        <!-- Players Row -->
+                                        <div class="status-item">
+                                            <span class="status-label">
+                                                <i data-lucide="users"></i>
+                                                Players
+                                            </span>
+                                            <span
+                                                class="status-value"
+                                                id="stat-players"
+                                                >—</span
+                                            >
+                                        </div>
+                                    </div>
+
+                                    <!-- Players sub-text & progress fill -->
+                                    <div class="players-progress-container">
+                                        <div
+                                            class="players-sub-text"
+                                            id="stat-players-sub"
+                                        >
+                                            0/0 online
+                                        </div>
+                                        <div class="progress-bar-mini">
+                                            <div
+                                                class="progress-fill-mini"
+                                                id="bar-players"
+                                                style="width: 0%"
+                                            ></div>
+                                        </div>
+                                        <div
+                                            id="active-players-faces"
+                                            style="
+                                                display: flex;
+                                                flex-wrap: wrap;
+                                                gap: 6px;
+                                                margin-top: 10px;
+                                            "
+                                        ></div>
+                                    </div>
+
+                                    <div class="dash-divider"></div>
+
+                                    <!-- IP List Grid -->
+                                    <div class="ip-address-grid">
+                                        <!-- Local IP -->
+                                        <div id="local-ip-box" class="ip-row">
+                                            <div
+                                                class="ip-meta"
+                                                style="
+                                                    width: 100%;
+                                                    display: flex;
+                                                    align-items: center;
+                                                    gap: 6px;
+                                                "
+                                            >
+                                                <i data-lucide="home"></i>
+                                                <span class="ip-lbl"
+                                                    >Local:</span
+                                                >
+                                                <textarea
+                                                    id="local-ip-text"
+                                                    readonly
+                                                    rows="1"
+                                                    class="ip-textarea-val"
+                                                    onclick="this.select()"
+                                                ></textarea>
+                                            </div>
+                                            <button
+                                                class="ip-copy-pill"
+                                                onclick="
+                                                    copyIp(
+                                                        'local-ip-text',
+                                                        this,
+                                                    )
+                                                "
+                                                title="Copy Local IP"
+                                            >
+                                                <i data-lucide="copy"></i>
+                                            </button>
+                                        </div>
+
+                                        <!-- Public IP -->
+                                        <div
+                                            id="tunnel-info-box"
+                                            class="ip-row"
+                                        >
+                                            <div
+                                                class="ip-meta"
+                                                id="tunnel-info-content"
+                                                style="
+                                                    width: 100%;
+                                                    display: flex;
+                                                    align-items: center;
+                                                    gap: 6px;
+                                                "
+                                            >
+                                                <i
+                                                    data-lucide="globe"
+                                                    id="public-ip-icon"
+                                                ></i>
+                                                <i
+                                                    data-lucide="key"
+                                                    id="public-p2p-icon"
+                                                    style="display: none"
+                                                ></i>
+                                                <span
+                                                    class="ip-lbl"
+                                                    id="public-ip-label"
+                                                    >Public:</span
+                                                >
+                                                <textarea
+                                                    id="public-ip-text"
+                                                    readonly
+                                                    rows="1"
+                                                    class="ip-textarea-val"
+                                                    onclick="this.select()"
+                                                ></textarea>
+                                                <div
+                                                    id="tunnel-claim-container"
+                                                    style="
+                                                        display: none;
+                                                        align-items: center;
+                                                        gap: 6px;
+                                                        width: 100%;
+                                                    "
+                                                >
+                                                    <i
+                                                        data-lucide="alert-triangle"
+                                                        style="
+                                                            width: 14px;
+                                                            height: 14px;
+                                                            color: var(
+                                                                --warning
+                                                            );
+                                                        "
+                                                    ></i>
+                                                    <a
+                                                        id="tunnel-claim-link"
+                                                        href="#"
+                                                        target="_blank"
+                                                        style="
+                                                            color: var(
+                                                                --warning
+                                                            );
+                                                            text-decoration: underline;
+                                                            font-size: 0.85rem;
+                                                        "
+                                                        >Claim tunnel IP →</a
+                                                    >
+                                                </div>
+                                            </div>
+                                            <button
+                                                id="btn-copy-public"
+                                                class="ip-copy-pill"
+                                                onclick="
+                                                    copyIp(
+                                                        'public-ip-text',
+                                                        this,
+                                                    )
+                                                "
+                                                title="Copy Public IP"
+                                            >
+                                                <i data-lucide="copy"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Playit Tunnel Status -->
+                                    <div
+                                        class="playit-status-box"
+                                        id="playit-setup-box"
+                                    >
+                                        <div class="playit-header" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                                            <div class="playit-badge">
+                                                <span
+                                                    class="tunnel-pulse waiting"
+                                                    id="tunnel-pulse-dot"
+                                                ></span>
+                                                <span id="tunnel-status-text"
+                                                    >Playit.gg —
+                                                    Initializing…</span
+                                                >
+                                            </div>
+                                            <button
+                                                class="btn secondary"
+                                                style="padding: 4px 10px; font-size: 0.8rem; background: rgba(255,255,255,0.05); border: 1px solid var(--border); border-radius: 6px; color: var(--text); cursor: pointer;"
+                                                onclick="resetPlayitTunnel()"
+                                                title="Reset Playit configuration to generate a new Claim link"
+                                            >
+                                                <i data-lucide="refresh-cw" style="width: 14px; height: 14px; margin-right: 4px; vertical-align: text-bottom;"></i> Reset
+                                            </button>
+                                        </div>
+                                </div>
+
+                                <!-- Card 2: Hardware & Sync -->
+                                <div class="dash-card card-hw-sync">
+                                    <div class="card-title-compact">
+                                        <i
+                                            data-lucide="cpu"
+                                            class="title-icon-hw"
+                                        ></i>
+                                        Hardware Specs & Sync
+                                    </div>
+
+                                    <!-- Plan Specs horizontally -->
+                                    <div class="plan-specs-chips">
+                                        <div class="plan-model-badge">
+                                            <div
+                                                class="brand-circle"
+                                                id="plan-brand-icon"
+                                            >
+                                                HP
+                                            </div>
+                                            <span
+                                                id="plan-model-name"
+                                                class="model-name"
+                                                >Victus Local</span
+                                            >
+                                        </div>
+                                        <div class="specs-chips-container">
+                                            <span
+                                                class="spec-chip"
+                                                id="plan-cpu-spec"
+                                                >💻 200% CPU</span
+                                            >
+                                            <span
+                                                class="spec-chip"
+                                                id="plan-ram-spec"
+                                                >🧠 6 GB RAM</span
+                                            >
+                                            <span
+                                                class="spec-chip"
+                                                id="plan-disk-spec"
+                                                >💾 Unlimited</span
+                                            >
+                                        </div>
+                                    </div>
+
+                                    <div class="dash-divider"></div>
+
+                                    <!-- Modpack Sync -->
+                                    <div
+                                        id="dev-modpack-panel"
+                                        class="sync-panel-compact"
+                                    >
+                                        <div class="sync-header-row">
+                                            <span class="sync-lbl">
+                                                <i
+                                                    data-lucide="upload-cloud"
+                                                ></i>
+                                                Sync Client
+                                            </span>
+                                            <span
+                                                id="manifest-mod-badge"
+                                                style="display: none"
+                                                class="manifest-status-badge"
+                                            ></span>
+                                        </div>
+                                        <div class="sync-controls-row">
+                                            <button
+                                                id="btn-publish-manifest"
+                                                class="btn primary micro-btn"
+                                                onclick="publishManifest(this)"
+                                                style="flex-shrink: 0;"
+                                            >
+                                                Publish
+                                            </button>
+                                            <input
+                                                type="text"
+                                                id="manifest-url-display"
+                                                class="glass-input-micro sync-url-input"
+                                                readonly
+                                                placeholder="Manifest URL..."
+                                                style="min-width: 0;"
+                                            />
+                                            <button
+                                                id="btn-copy-manifest"
+                                                class="btn outline micro-btn"
+                                                onclick="copyManifestUrl(this)"
+                                                title="Copy URL"
+                                                style="width: 24px; padding: 0; flex-shrink: 0;"
+                                            >
+                                                <i
+                                                    data-lucide="copy"
+                                                    style="
+                                                        width: 12px;
+                                                        height: 12px;
+                                                    "
+                                                ></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Hidden Fields for app.js Compatibility -->
+                                <div style="display: none">
+                                    <div id="dash-motd-title"></div>
+                                    <div id="dash-motd-preview-text"></div>
+                                    <div id="dash-motd-color-bar"></div>
+                                    <input type="text" id="dash-motd-input" />
+                                    <button onclick="saveMotd(this)"></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    </div>
+                    <!-- end tab-dashboard -->
+
+                    

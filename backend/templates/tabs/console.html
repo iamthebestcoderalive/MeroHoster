@@ -1,0 +1,316 @@
+<!-- ── Console ────────────────────────────────────────────── -->
+                    <div
+                        id="tab-console"
+                        class="tab-content"
+                        style="display: none"
+                    >
+                        <h2 class="page-title">Console</h2>
+                        <p class="page-subtitle">
+                            Live server output, command input, and in-game chat
+                        </p>
+
+                        <div class="console-layout">
+                            <!-- Left: Log viewer + command input -->
+                            <div class="console-left">
+                                <div
+                                    class="console-wrapper"
+                                    style="position: relative"
+                                    id="console-wrapper-main"
+                                >
+                                    <!-- Custom Context Menu for Console -->
+                                    <div
+                                        id="console-context-menu"
+                                        class="glass-panel"
+                                        style="
+                                            display: none;
+                                            position: absolute;
+                                            z-index: 100;
+                                            padding: 8px;
+                                            border-radius: 8px;
+                                            min-width: 120px;
+                                            box-shadow: 0 8px 16px
+                                                rgba(0, 0, 0, 0.5);
+                                        "
+                                    >
+                                        <button
+                                            class="btn ghost small"
+                                            style="
+                                                width: 100%;
+                                                text-align: left;
+                                                justify-content: flex-start;
+                                            "
+                                            onclick="copyConsoleLogs()"
+                                        >
+                                            <i
+                                                data-lucide="copy"
+                                                style="
+                                                    width: 14px;
+                                                    height: 14px;
+                                                    margin-right: 6px;
+                                                "
+                                            ></i>
+                                            Copy All
+                                        </button>
+                                        <button
+                                            class="btn ghost small"
+                                            style="
+                                                width: 100%;
+                                                text-align: left;
+                                                justify-content: flex-start;
+                                                color: var(--danger);
+                                            "
+                                            onclick="clearConsoleLogs()"
+                                        >
+                                            <i
+                                                data-lucide="trash-2"
+                                                style="
+                                                    width: 14px;
+                                                    height: 14px;
+                                                    margin-right: 6px;
+                                                "
+                                            ></i>
+                                            Clear (cls)
+                                        </button>
+                                    </div>
+                                    <!-- Offline overlay -->
+                                    <div
+                                        id="console-offline"
+                                        class="console-offline"
+                                    >
+                                        <span
+                                            style="
+                                                display: flex;
+                                                align-items: center;
+                                                gap: 6px;
+                                            "
+                                            ><i
+                                                data-lucide="square"
+                                                style="
+                                                    width: 16px;
+                                                    height: 16px;
+                                                "
+                                            ></i>
+                                            Server is offline</span
+                                        >
+                                    </div>
+                                    <div
+                                        class="console-logs"
+                                        id="console-logs"
+                                    ></div>
+                                    <div class="console-input-area">
+                                        <span class="console-prompt">$</span>
+                                        <div
+                                            style="
+                                                position: relative;
+                                                flex: 1;
+                                                display: flex;
+                                                overflow: hidden;
+                                            "
+                                        >
+                                            <div
+                                                id="console-ghost-wrapper"
+                                                style="
+                                                    position: absolute;
+                                                    top: 0;
+                                                    left: 0;
+                                                    padding: 11px 8px;
+                                                    color: transparent;
+                                                    font-family: monospace;
+                                                    font-size: 0.95rem;
+                                                    white-space: pre;
+                                                    pointer-events: none;
+                                                    overflow: hidden;
+                                                    height: 100%;
+                                                    box-sizing: border-box;
+                                                    width: 100%;
+                                                "
+                                            >
+                                                <span
+                                                    id="console-ghost-typed"
+                                                    style="color: transparent"
+                                                ></span
+                                                ><span
+                                                    id="console-ghost-suggest"
+                                                    style="
+                                                        color: rgba(
+                                                            255,
+                                                            255,
+                                                            255,
+                                                            0.3
+                                                        );
+                                                    "
+                                                ></span>
+                                            </div>
+                                            <input
+                                                type="text"
+                                                id="console-input"
+                                                class="glass-input"
+                                                placeholder="Enter server command…"
+                                                disabled
+                                                autocomplete="off"
+                                                style="
+                                                    position: relative;
+                                                    z-index: 2;
+                                                    font-family: monospace;
+                                                    font-size: 0.95rem;
+                                                    background: transparent;
+                                                    width: 100%;
+                                                "
+                                            />
+                                        </div>
+                                        <div
+                                            id="console-autocomplete-box"
+                                            class="glass-panel"
+                                            style="display: none"
+                                        ></div>
+                                        <button
+                                            id="console-send"
+                                            class="btn primary"
+                                            disabled
+                                            onclick="sendConsoleCommand()"
+                                        >
+                                            Send
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Right: Chat sender -->
+                            <div class="console-right">
+                                <div class="panel chat-panel">
+                                    <h3
+                                        style="
+                                            display: flex;
+                                            align-items: center;
+                                            gap: 6px;
+                                        "
+                                    >
+                                        <i
+                                            data-lucide="message-square"
+                                            style="width: 20px; height: 20px"
+                                        ></i>
+                                        In-Game Chat
+                                    </h3>
+                                    <p
+                                        class="text-muted"
+                                        style="
+                                            margin-bottom: 16px;
+                                            font-size: 0.82rem;
+                                        "
+                                    >
+                                        Send a message into the server
+                                    </p>
+
+                                    <div class="form-group">
+                                        <label>Send as player (optional)</label>
+                                        <input
+                                            type="text"
+                                            id="chat-player"
+                                            class="glass-input"
+                                            placeholder="Username (blank = announcement)"
+                                        />
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Target Player</label>
+                                        <input
+                                            type="text"
+                                            id="chat-target"
+                                            class="glass-input"
+                                            placeholder="Player name (or @a for all)"
+                                            value="@a"
+                                            list="chat-target-list"
+                                        />
+                                        <datalist id="chat-target-list"></datalist>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Message Color</label>
+                                        <select id="chat-color-select" class="glass-input">
+                                            <option value="white">White</option>
+                                            <option value="red">Red</option>
+                                            <option value="gold">Gold</option>
+                                            <option value="yellow">Yellow</option>
+                                            <option value="green">Green</option>
+                                            <option value="aqua">Aqua</option>
+                                            <option value="blue">Blue</option>
+                                            <option value="light_purple">Pink</option>
+                                            <option value="dark_purple">Purple</option>
+                                            <option value="dark_red">Dark Red</option>
+                                            <option value="dark_green">Dark Green</option>
+                                            <option value="gray">Gray</option>
+                                            <option value="dark_gray">Dark Gray</option>
+                                            <option value="black">Black</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Message</label>
+                                        <textarea
+                                            id="chat-message"
+                                            class="glass-input"
+                                            rows="3"
+                                            placeholder="Type your message…"
+                                            disabled
+                                            onkeypress="
+                                                if (
+                                                    event.key === 'Enter' &&
+                                                    !event.shiftKey
+                                                ) {
+                                                    event.preventDefault();
+                                                    sendChat();
+                                                }
+                                            "
+                                        ></textarea>
+                                    </div>
+                                    <button
+                                        id="chat-send"
+                                        class="btn primary"
+                                        style="width: 100%"
+                                        disabled
+                                        onclick="sendChat()"
+                                    >
+                                        Send Message
+                                    </button>
+
+                                    <div class="chat-tips">
+                                        <p>
+                                            <i
+                                                data-lucide="lightbulb"
+                                                style="
+                                                    width: 14px;
+                                                    height: 14px;
+                                                    vertical-align: text-bottom;
+                                                    margin-right: 4px;
+                                                "
+                                            ></i>
+                                            <b>Target Player</b> → send to a specific player username, or @a for everyone
+                                        </p>
+                                        <p>
+                                            <i
+                                                data-lucide="lightbulb"
+                                                style="
+                                                    width: 14px;
+                                                    height: 14px;
+                                                    vertical-align: text-bottom;
+                                                    margin-right: 4px;
+                                                "
+                                            ></i>
+                                            <b>No username</b> → broadcasts via tellraw (no [Server] prefix)
+                                        </p>
+                                        <p>
+                                            <i
+                                                data-lucide="lightbulb"
+                                                style="
+                                                    width: 14px;
+                                                    height: 14px;
+                                                    vertical-align: text-bottom;
+                                                    margin-right: 4px;
+                                                "
+                                            ></i>
+                                            <b>With username</b> → fakes a chat message from that player
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    

@@ -1,0 +1,281 @@
+<!-- ── Modrinth ───────────────────────────────────────────── -->
+                    <div
+                        id="tab-modrinth"
+                        class="tab-content"
+                        style="display: none; position: relative"
+                    >
+                        <div
+                            id="tab-lock-modrinth"
+                            class="tab-lock-overlay"
+                            style="display: none"
+                        >
+                            <div class="tab-lock-content">
+                                <i
+                                    data-lucide="lock"
+                                    style="
+                                        width: 32px;
+                                        height: 32px;
+                                        color: var(--warning);
+                                        margin-bottom: 12px;
+                                    "
+                                ></i>
+                                <h3>First-Boot Required</h3>
+                                <p class="text-muted">
+                                    Please start the server for the first time
+                                    to generate core folders before installing
+                                    mods or plugins.
+                                </p>
+                            </div>
+                        </div>
+                        <h2 class="page-title">Modrinth Installer</h2>
+                        <p class="page-subtitle">
+                            Search and install content directly from Modrinth
+                        </p>
+
+                        <div class="mod-tabs">
+                            <span
+                                id="mt-available"
+                                class="mod-tab active"
+                                onclick="switchModTab('available')"
+                                >Available</span
+                            >
+                            <span
+                                id="mt-installed"
+                                class="mod-tab"
+                                onclick="switchModTab('installed')"
+                                >Installed</span
+                            >
+                        </div>
+
+                        <div id="mod-view-available">
+                            <div class="sticky-mod-header" style="margin-bottom: 20px;">
+                                <div
+                                    class="platform-toggle-container"
+                                    style="
+                                        margin-bottom: 16px;
+                                        display: flex;
+                                        justify-content: center;
+                                    "
+                                >
+                                    <div
+                                        class="platform-toggle"
+                                        style="
+                                            display: flex;
+                                            background: rgba(0, 0, 0, 0.3);
+                                            padding: 4px;
+                                            border-radius: 30px;
+                                            border: 1px solid var(--border);
+                                            position: relative;
+                                            gap: 4px;
+                                            width: fit-content;
+                                        "
+                                    >
+                                        <button
+                                            id="platform-btn-modrinth"
+                                            class="platform-btn active"
+                                            onclick="switchPlatform('modrinth')"
+                                            style="
+                                                background: none;
+                                                border: none;
+                                                padding: 6px 18px;
+                                                border-radius: 20px;
+                                                font-weight: 600;
+                                                font-size: 0.85rem;
+                                                color: var(--text);
+                                                cursor: pointer;
+                                                display: flex;
+                                                align-items: center;
+                                                gap: 6px;
+                                                transition: all 0.3s ease;
+                                            "
+                                        >
+                                            <span
+                                                style="
+                                                    display: inline-block;
+                                                    width: 8px;
+                                                    height: 8px;
+                                                    border-radius: 50%;
+                                                    background: #1bd96a;
+                                                    box-shadow: 0 0 8px #1bd96a;
+                                                "
+                                            ></span>
+                                            Modrinth
+                                        </button>
+                                        <button
+                                            id="platform-btn-curseforge"
+                                            class="platform-btn"
+                                            onclick="
+                                                switchPlatform('curseforge')
+                                            "
+                                            style="
+                                                background: none;
+                                                border: none;
+                                                padding: 6px 18px;
+                                                border-radius: 20px;
+                                                font-weight: 600;
+                                                font-size: 0.85rem;
+                                                color: var(--muted);
+                                                cursor: pointer;
+                                                display: flex;
+                                                align-items: center;
+                                                gap: 6px;
+                                                transition: all 0.3s ease;
+                                            "
+                                        >
+                                            <span
+                                                style="
+                                                    display: inline-block;
+                                                    width: 8px;
+                                                    height: 8px;
+                                                    border-radius: 50%;
+                                                    background: #ff8c00;
+                                                    box-shadow: 0 0 8px #ff8c00;
+                                                    opacity: 0.5;
+                                                "
+                                            ></span>
+                                            CurseForge
+                                        </button>
+                                    </div>
+                                </div>
+                                <div
+                                    class="search-bar"
+                                    style="margin-bottom: 0"
+                                >
+                                    <select
+                                        id="mod-type-filter"
+                                        class="glass-input"
+                                        style="width: 160px; flex-shrink: 0"
+                                        onchange="searchModrinth()"
+                                    >
+                                        <option value="mod">Mods</option>
+                                        <option value="resourcepack">
+                                            Resource Packs
+                                        </option>
+                                        <option value="shader">Shaders</option>
+                                    </select>
+                                    <input
+                                        type="text"
+                                        id="mod-search-input"
+                                        class="glass-input"
+                                        placeholder="Search Modrinth…"
+                                        oninput="debounceSearchModrinth()"
+                                    />
+                                    <button
+                                        class="btn primary"
+                                        onclick="searchModrinth()"
+                                    >
+                                        <i
+                                            data-lucide="search"
+                                            style="width: 16px; height: 16px"
+                                        ></i>
+                                        Search
+                                    </button>
+                                </div>
+                            </div>
+                            <div
+                                id="mod-results"
+                                class="results-grid platform-modrinth"
+                            >
+                                <p class="text-muted">
+                                    Search to browse Modrinth.
+                                </p>
+                            </div>
+                            <div
+                                id="mod-load-more-container"
+                                style="
+                                    display: none;
+                                    justify-content: center;
+                                    gap: 16px;
+                                    margin: 30px 0 20px 0;
+                                "
+                            >
+                                <button
+                                    id="btn-load-more-mods"
+                                    class="btn primary"
+                                    onclick="
+                                        this.disabled = true;
+                                        this.innerHTML =
+                                            '<i data-lucide=\'settings\' class=\'spin\'></i> Loading...';
+                                        lucide.createIcons();
+                                        searchModrinth(true);
+                                    "
+                                    style="
+                                        padding: 10px 24px;
+                                        font-weight: 600;
+                                        box-shadow: 0 4px 15px
+                                            rgba(27, 217, 106, 0.3);
+                                    "
+                                >
+                                    <i data-lucide="chevron-down"></i> Show more
+                                </button>
+                                <button
+                                    class="btn"
+                                    onclick="
+                                        document
+                                            .querySelector('#content-area')
+                                            .scrollTo({
+                                                top: 0,
+                                                behavior: 'smooth',
+                                            })
+                                    "
+                                    style="
+                                        padding: 10px 24px;
+                                        font-weight: 600;
+                                        background: rgba(255, 255, 255, 0.05);
+                                        border: 1px solid var(--border);
+                                    "
+                                >
+                                    <i data-lucide="arrow-up"></i> Go to top
+                                </button>
+                            </div>
+                        </div>
+
+                        <div id="mod-view-installed" style="display: none">
+                            <div class="sticky-mod-header" style="margin-bottom: 20px;">
+                                <div
+                                    class="search-bar"
+                                    style="margin-bottom: 0"
+                                >
+                                    <select
+                                        id="mod-installed-type-filter"
+                                        class="glass-input"
+                                        style="width: 160px; flex-shrink: 0"
+                                        onchange="filterInstalledMods()"
+                                    >
+                                        <option value="all">All Content</option>
+                                        <option value="mod">Mods</option>
+                                        <option value="plugin">Plugins</option>
+                                        <option value="resourcepack">
+                                            Resource Packs
+                                        </option>
+                                        <option value="shader">Shaders</option>
+                                    </select>
+                                    <input
+                                        type="text"
+                                        id="mod-installed-search-input"
+                                        class="glass-input"
+                                        placeholder="Search installed content…"
+                                        oninput="filterInstalledMods()"
+                                    />
+                                    <button
+                                        class="btn primary"
+                                        onclick="fetchInstalledMods()"
+                                    >
+                                        <i
+                                            data-lucide="refresh-cw"
+                                            style="width: 16px; height: 16px"
+                                        ></i>
+                                        Refresh
+                                    </button>
+                                </div>
+                            </div>
+                            <div
+                                id="installed-mod-results"
+                                class="results-grid"
+                            >
+                                <p class="text-muted">Loading...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    

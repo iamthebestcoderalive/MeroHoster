@@ -1,0 +1,206 @@
+<!-- ── Backups ───────────────────────────────────── -->
+                    <div
+                        id="tab-backups"
+                        class="tab-content"
+                        style="display: none"
+                    >
+                        <div
+                            style="
+                                display: flex;
+                                justify-content: space-between;
+                                align-items: center;
+                                margin-bottom: 24px;
+                            "
+                        >
+                            <div>
+                                <h2 class="page-title">Backups</h2>
+                                <p class="page-subtitle">
+                                    Automated world backups & safe archiving
+                                </p>
+                            </div>
+                            <button
+                                class="btn success"
+                                id="btn-create-backup"
+                                onclick="createBackup(this)"
+                            >
+                                <i
+                                    data-lucide="archive"
+                                    style="width: 16px; height: 16px"
+                                ></i>
+                                Create Backup Now
+                            </button>
+                        </div>
+
+                        <!-- Auto-Backup Settings -->
+                        <div class="panel" style="margin-bottom: 20px">
+                            <h3
+                                style="
+                                    margin-bottom: 12px;
+                                    display: flex;
+                                    align-items: center;
+                                    gap: 8px;
+                                "
+                            >
+                                <i
+                                    data-lucide="clock"
+                                    style="width: 18px; height: 18px"
+                                ></i>
+                                Auto-Backup Settings
+                            </h3>
+                            <div
+                                style="
+                                    display: flex;
+                                    gap: 20px;
+                                    align-items: flex-end;
+                                "
+                            >
+                                <div
+                                    class="form-group"
+                                    style="margin-bottom: 0"
+                                >
+                                    <label class="cfg-label"
+                                        >Enable Auto-Backups</label
+                                    >
+                                    <select
+                                        id="cfg-auto-backup"
+                                        class="glass-input"
+                                        onchange="saveBackupSettings()"
+                                    >
+                                        <option value="false">Disabled</option>
+                                        <option value="true">Enabled</option>
+                                    </select>
+                                </div>
+                                <div
+                                    class="form-group"
+                                    style="margin-bottom: 0"
+                                >
+                                    <label class="cfg-label">Interval</label>
+                                    <select
+                                        id="cfg-backup-interval"
+                                        class="glass-input"
+                                        onchange="saveBackupSettings()"
+                                    >
+                                        <option value="2">Every 2 Hours</option>
+                                        <option value="6">Every 6 Hours</option>
+                                        <option value="12">
+                                            Every 12 Hours
+                                        </option>
+                                        <option value="24">
+                                            Every 24 Hours
+                                        </option>
+                                    </select>
+                                </div>
+                                <div
+                                    class="form-group"
+                                    style="margin-bottom: 0"
+                                >
+                                    <label class="cfg-label"
+                                        >Max Backups to Keep</label
+                                    >
+                                    <input
+                                        type="number"
+                                        id="cfg-max-backups"
+                                        class="glass-input"
+                                        value="5"
+                                        min="1"
+                                        max="50"
+                                        onchange="saveBackupSettings()"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Backup List -->
+                        <div class="panel">
+                            <h3
+                                style="
+                                    margin-bottom: 12px;
+                                    display: flex;
+                                    align-items: center;
+                                    gap: 8px;
+                                "
+                            >
+                                <i
+                                    data-lucide="hard-drive"
+                                    style="width: 18px; height: 18px"
+                                ></i>
+                                Local Backups
+                            </h3>
+                            <div style="overflow-x: auto">
+                                <table
+                                    class="file-table"
+                                    style="
+                                        width: 100%;
+                                        border-collapse: collapse;
+                                        text-align: left;
+                                    "
+                                >
+                                    <thead>
+                                        <tr
+                                            style="
+                                                border-bottom: 1px solid
+                                                    var(--border);
+                                                color: var(--muted);
+                                                font-size: 0.85rem;
+                                            "
+                                        >
+                                            <th
+                                                style="
+                                                    padding: 10px;
+                                                    font-weight: 600;
+                                                "
+                                            >
+                                                Filename
+                                            </th>
+                                            <th
+                                                style="
+                                                    padding: 10px;
+                                                    font-weight: 600;
+                                                "
+                                            >
+                                                Date
+                                            </th>
+                                            <th
+                                                style="
+                                                    padding: 10px;
+                                                    font-weight: 600;
+                                                "
+                                            >
+                                                Size
+                                            </th>
+                                            <th
+                                                style="
+                                                    padding: 10px;
+                                                    font-weight: 600;
+                                                    text-align: right;
+                                                "
+                                            >
+                                                Actions
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="backups-list">
+                                        <!-- Filled by JS -->
+                                        <tr>
+                                            <td
+                                                colspan="4"
+                                                class="text-muted"
+                                                style="
+                                                    padding: 10px;
+                                                    text-align: center;
+                                                "
+                                            >
+                                                Loading...
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- /content-area -->
+            </main>
+        </div>
+
+        

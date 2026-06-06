@@ -1,0 +1,182 @@
+<!-- ── Player Manager ───────────────────────────────────── -->
+                    <div
+                        id="tab-players"
+                        class="tab-content"
+                        style="display: none"
+                    >
+                        <h2 class="page-title">Player Manager</h2>
+                        <p class="page-subtitle">
+                            Manage your whitelist, ops, and ban list
+                        </p>
+
+                        <!-- Search -->
+                        <div class="panel" style="margin-bottom: 20px">
+                            <h3
+                                style="
+                                    margin-bottom: 12px;
+                                    display: flex;
+                                    align-items: center;
+                                    gap: 8px;
+                                "
+                            >
+                                <i
+                                    data-lucide="search"
+                                    style="width: 18px; height: 18px"
+                                ></i>
+                                Find Player
+                            </h3>
+                            <div style="display: flex; gap: 10px">
+                                <input
+                                    type="text"
+                                    id="pm-search-input"
+                                    class="glass-input"
+                                    placeholder="Enter Minecraft username…"
+                                    onkeypress="
+                                        if (event.key === 'Enter')
+                                            searchPlayer();
+                                    "
+                                    style="flex: 1"
+                                />
+                                <button
+                                    class="btn primary"
+                                    onclick="searchPlayer()"
+                                >
+                                    <i
+                                        data-lucide="search"
+                                        style="width: 16px; height: 16px"
+                                    ></i>
+                                    Search
+                                </button>
+                            </div>
+                            <div
+                                id="pm-search-result"
+                                style="margin-top: 14px; display: none"
+                            >
+                                <!-- Filled by JS -->
+                            </div>
+                        </div>
+
+                        <!-- Player Lists -->
+                        <div
+                            style="
+                                display: grid;
+                                grid-template-columns: 1fr 1fr;
+                                gap: 16px;
+                            "
+                        >
+                            <div class="panel">
+                                <h3
+                                    style="
+                                        display: flex;
+                                        align-items: center;
+                                        gap: 8px;
+                                        margin-bottom: 14px;
+                                    "
+                                >
+                                    <i
+                                        data-lucide="activity"
+                                        style="
+                                            width: 16px;
+                                            height: 16px;
+                                            color: var(--primary);
+                                        "
+                                    ></i>
+                                    Online Now
+                                </h3>
+                                <div id="pm-online-list">
+                                    <p
+                                        class="text-muted"
+                                        style="font-size: 0.85rem"
+                                    >
+                                        Offline
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="panel">
+                                <h3
+                                    style="
+                                        display: flex;
+                                        align-items: center;
+                                        gap: 8px;
+                                        margin-bottom: 14px;
+                                    "
+                                >
+                                    <i
+                                        data-lucide="check-circle"
+                                        style="
+                                            width: 16px;
+                                            height: 16px;
+                                            color: var(--success);
+                                        "
+                                    ></i>
+                                    Whitelist
+                                </h3>
+                                <div id="pm-whitelist-list">
+                                    <p
+                                        class="text-muted"
+                                        style="font-size: 0.85rem"
+                                    >
+                                        Empty
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="panel">
+                                <h3
+                                    style="
+                                        display: flex;
+                                        align-items: center;
+                                        gap: 8px;
+                                        margin-bottom: 14px;
+                                    "
+                                >
+                                    <i
+                                        data-lucide="star"
+                                        style="
+                                            width: 16px;
+                                            height: 16px;
+                                            color: var(--warning);
+                                        "
+                                    ></i>
+                                    Operators
+                                </h3>
+                                <div id="pm-ops-list">
+                                    <p
+                                        class="text-muted"
+                                        style="font-size: 0.85rem"
+                                    >
+                                        Empty
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="panel">
+                                <h3
+                                    style="
+                                        display: flex;
+                                        align-items: center;
+                                        gap: 8px;
+                                        margin-bottom: 14px;
+                                    "
+                                >
+                                    <i
+                                        data-lucide="ban"
+                                        style="
+                                            width: 16px;
+                                            height: 16px;
+                                            color: var(--danger);
+                                        "
+                                    ></i>
+                                    Banned
+                                </h3>
+                                <div id="pm-banned-list">
+                                    <p
+                                        class="text-muted"
+                                        style="font-size: 0.85rem"
+                                    >
+                                        Empty
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    

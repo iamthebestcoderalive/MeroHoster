@@ -1,0 +1,139 @@
+<!-- ── File Manager ───────────────────────────────────────── -->
+                    <div
+                        id="tab-files"
+                        class="tab-content"
+                        style="display: none; position: relative"
+                    >
+                        <div
+                            id="tab-lock-files"
+                            class="tab-lock-overlay"
+                            style="display: none"
+                        >
+                            <div class="tab-lock-content">
+                                <i
+                                    data-lucide="lock"
+                                    style="
+                                        width: 32px;
+                                        height: 32px;
+                                        color: var(--warning);
+                                        margin-bottom: 12px;
+                                    "
+                                ></i>
+                                <h3>First-Boot Required</h3>
+                                <p class="text-muted">
+                                    Please start the server for the first time
+                                    to generate core folders before editing
+                                    files.
+                                </p>
+                            </div>
+                        </div>
+                        <div class="fm-header">
+                            <div>
+                                <h2 class="page-title">File Manager</h2>
+                                <p class="page-subtitle">
+                                    Browse and manage server files
+                                </p>
+                                <input
+                                    type="text"
+                                    id="fm-search"
+                                    class="glass-input"
+                                    placeholder="Search files…"
+                                    style="width: 200px; margin-top: 8px"
+                                    oninput="filterFiles()"
+                                />
+                            </div>
+                            <div class="fm-actions">
+                                <button
+                                    class="btn outline small"
+                                    id="fm-upload-btn"
+                                >
+                                    <i
+                                        data-lucide="upload"
+                                        style="width: 14px; height: 14px"
+                                    ></i>
+                                    Upload
+                                </button>
+                                <button
+                                    class="btn outline small"
+                                    onclick="createFolder()"
+                                >
+                                    <i
+                                        data-lucide="folder-plus"
+                                        style="width: 14px; height: 14px"
+                                    ></i>
+                                    New Folder
+                                </button>
+                                <button
+                                    class="btn outline small"
+                                    onclick="fetchFiles()"
+                                >
+                                    <i
+                                        data-lucide="rotate-cw"
+                                        style="width: 14px; height: 14px"
+                                    ></i>
+                                    Refresh
+                                </button>
+                                <button
+                                    class="btn danger outline small"
+                                    onclick="deleteSelected()"
+                                >
+                                    <i
+                                        data-lucide="trash-2"
+                                        style="width: 14px; height: 14px"
+                                    ></i>
+                                    Delete Selected
+                                </button>
+                            </div>
+                        </div>
+
+                        <div
+                            id="dropzone"
+                            class="dropzone"
+                            style="
+                                display: flex;
+                                justify-content: center;
+                                align-items: center;
+                                gap: 8px;
+                            "
+                        >
+                            <i
+                                data-lucide="folder-down"
+                                style="width: 20px; height: 20px"
+                            ></i>
+                            Drag &amp; drop files here to upload into current
+                            folder
+                        </div>
+
+                        <div class="fm-breadcrumb-row">
+                            <span
+                                id="fm-breadcrumb"
+                                class="fm-breadcrumb"
+                            ></span>
+                        </div>
+                        <div class="fm-table-wrap">
+                            <table class="fm-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 36px">
+                                            <input
+                                                type="checkbox"
+                                                id="fm-select-all"
+                                                onchange="
+                                                    toggleSelectAll(
+                                                        this.checked,
+                                                    )
+                                                "
+                                            />
+                                        </th>
+                                        <th>Name</th>
+                                        <th style="width: 100px">Size</th>
+                                        <th style="width: 140px">Modified</th>
+                                        <th style="width: 90px"></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="fm-tbody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    

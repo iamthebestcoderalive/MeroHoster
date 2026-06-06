@@ -1,0 +1,848 @@
+<!-- ── Settings ──────────────────────────────────────── -->
+                    <div
+                        id="tab-settings"
+                        class="tab-content"
+                        style="display: none"
+                    >
+                        <div
+                            style="
+                                display: flex;
+                                justify-content: space-between;
+                                align-items: center;
+                                margin-bottom: 24px;
+                            "
+                        >
+                            <div>
+                                <h2 class="page-title">Settings</h2>
+                                <p class="page-subtitle">
+                                    Visual <code>server.properties</code> editor
+                                    &mdash; grouped by category
+                                </p>
+                            </div>
+                            <button
+                                class="btn success"
+                                onclick="saveSettings(this)"
+                            >
+                                <i
+                                    data-lucide="save"
+                                    style="width: 16px; height: 16px"
+                                ></i>
+                                Save Configuration
+                            </button>
+                        </div>
+                        <!-- Category: RAM Allocation -->
+                        <div
+                            class="settings-category"
+                            style="
+                                border: 2px solid rgba(16, 185, 129, 0.3);
+                                background: rgba(16, 185, 129, 0.05);
+                            "
+                        >
+                            <div
+                                class="settings-category-header"
+                                style="color: #10b981"
+                            >
+                                <i
+                                    data-lucide="cpu"
+                                    style="width: 20px; height: 20px"
+                                ></i>
+                                Hardware Configuration
+                            </div>
+                            <div
+                                class="ram-settings-layout"
+                                style="
+                                    padding: 24px;
+                                    display: flex;
+                                    gap: 32px;
+                                    flex-wrap: wrap;
+                                    align-items: stretch;
+                                "
+                            >
+                                <div
+                                    class="form-group"
+                                    style="
+                                        margin-bottom: 0;
+                                        flex: 1.2;
+                                        min-width: 320px;
+                                        display: flex;
+                                        flex-direction: column;
+                                        justify-content: space-between;
+                                    "
+                                >
+                                    <div
+                                        style="
+                                            display: flex;
+                                            justify-content: space-between;
+                                            align-items: center;
+                                            margin-bottom: 20px;
+                                        "
+                                    >
+                                        <div
+                                            style="
+                                                display: flex;
+                                                align-items: center;
+                                                gap: 10px;
+                                            "
+                                        >
+                                            <i
+                                                data-lucide="memory-stick"
+                                                style="
+                                                    width: 22px;
+                                                    height: 22px;
+                                                    color: #10b981;
+                                                "
+                                            ></i>
+                                            <span
+                                                style="
+                                                    font-size: 1.15rem;
+                                                    font-weight: 700;
+                                                "
+                                                >Dynamic RAM Allocation</span
+                                            >
+                                            <span
+                                                class="info-tip"
+                                                data-tip="Amount of memory (in GB) allocated to this server. Requires restart."
+                                                >i</span
+                                            >
+                                        </div>
+                                        <span
+                                            id="cfg-ram-val"
+                                            style="
+                                                font-size: 1.4rem;
+                                                font-weight: 800;
+                                            "
+                                            >4 GB</span
+                                        >
+                                    </div>
+                                    <!-- Zone colour legend -->
+                                    <div
+                                        style="
+                                            display: flex;
+                                            gap: 18px;
+                                            margin-bottom: 14px;
+                                            font-size: 0.78rem;
+                                        "
+                                    >
+                                        <span
+                                            style="
+                                                display: flex;
+                                                align-items: center;
+                                                gap: 5px;
+                                            "
+                                            ><span
+                                                style="
+                                                    display: inline-block;
+                                                    width: 10px;
+                                                    height: 10px;
+                                                    border-radius: 50%;
+                                                    background: #facc15;
+                                                "
+                                            ></span
+                                            ><span style="color: #9ca3af"
+                                                >1–3 GB Under-Optimal</span
+                                            ></span
+                                        >
+                                        <span
+                                            style="
+                                                display: flex;
+                                                align-items: center;
+                                                gap: 5px;
+                                            "
+                                            ><span
+                                                style="
+                                                    display: inline-block;
+                                                    width: 10px;
+                                                    height: 10px;
+                                                    border-radius: 50%;
+                                                    background: #10b981;
+                                                "
+                                            ></span
+                                            ><span style="color: #9ca3af"
+                                                >4–11 GB Optimal</span
+                                            ></span
+                                        >
+                                        <span
+                                            style="
+                                                display: flex;
+                                                align-items: center;
+                                                gap: 5px;
+                                            "
+                                            ><span
+                                                style="
+                                                    display: inline-block;
+                                                    width: 10px;
+                                                    height: 10px;
+                                                    border-radius: 50%;
+                                                    background: #ef4444;
+                                                "
+                                            ></span
+                                            ><span style="color: #9ca3af"
+                                                >12+ GB Danger</span
+                                            ></span
+                                        >
+                                    </div>
+                                    <input
+                                        type="range"
+                                        id="cfg-ram"
+                                        class="glass-slider"
+                                        min="1"
+                                        max="16"
+                                        value="4"
+                                        step="1"
+                                        oninput="
+                                            updateRamSliderDisplay(
+                                                this,
+                                                'cfg-ram-val',
+                                            )
+                                        "
+                                        style="
+                                            height: 8px;
+                                            margin-bottom: 14px;
+                                            width: 100%;
+                                        "
+                                    />
+                                    <div
+                                        style="
+                                            display: flex;
+                                            justify-content: space-between;
+                                            font-size: 0.82rem;
+                                            color: var(--muted);
+                                        "
+                                    >
+                                        <span>1 GB</span>
+                                        <span id="cfg-ram-max-label"
+                                            >16 GB</span
+                                        >
+                                    </div>
+                                </div>
+                                <div
+                                    class="ram-visualizer-panel"
+                                    style="
+                                        flex: 1.5;
+                                        min-width: 360px;
+                                        display: flex;
+                                        flex-direction: column;
+                                        gap: 12px;
+                                        background: rgba(255, 255, 255, 0.02);
+                                        border: 1px solid var(--border);
+                                        padding: 16px 20px;
+                                        border-radius: 12px;
+                                        justify-content: space-between;
+                                    "
+                                >
+                                    <div
+                                        style="
+                                            font-weight: 700;
+                                            font-size: 0.95rem;
+                                            color: #10b981;
+                                            display: flex;
+                                            align-items: center;
+                                            gap: 8px;
+                                        "
+                                    >
+                                        <i
+                                            data-lucide="layout-grid"
+                                            style="
+                                                width: 18px;
+                                                height: 18px;
+                                                color: #10b981;
+                                            "
+                                        ></i>
+                                        Memory Layout & Recommendation
+                                    </div>
+                                    <div
+                                        class="ram-visual-blocks-container"
+                                        id="ram-visual-blocks"
+                                        style="
+                                            display: flex;
+                                            gap: 6px;
+                                            flex-wrap: wrap;
+                                            margin: 8px 0;
+                                        "
+                                    >
+                                        <!-- Blocks will be populated dynamically -->
+                                    </div>
+                                    <div
+                                        style="
+                                            font-size: 0.82rem;
+                                            color: var(--muted);
+                                            line-height: 1.5;
+                                        "
+                                    >
+                                        Mero dynamically configures JVM start
+                                        parameters (<code>-Xms</code> and
+                                        <code>-Xmx</code>) mapping to this
+                                        setting.
+                                        <ul
+                                            style="
+                                                margin: 6px 0 0 16px;
+                                                padding: 0;
+                                                list-style-type: disc;
+                                                display: flex;
+                                                flex-direction: column;
+                                                gap: 3px;
+                                            "
+                                        >
+                                            <li>
+                                                <strong style="color: #facc15"
+                                                    >Under-Optimal</strong
+                                                >: Vanilla only. Modded or
+                                                multi-player setups will likely
+                                                lag.
+                                            </li>
+                                            <li>
+                                                <strong style="color: #10b981"
+                                                    >Optimal</strong
+                                                >: Perfect for typical
+                                                Forge/Fabric servers with active
+                                                mods.
+                                            </li>
+                                            <li>
+                                                <strong style="color: #ef4444"
+                                                    >Danger</strong
+                                                >: Excessive RAM triggers Java
+                                                GC pauses unless running 200+
+                                                mods.
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Category: Server Identity -->
+                        <div class="settings-category">
+                            <div class="settings-category-header">
+                                <i
+                                    data-lucide="server"
+                                    style="width: 16px; height: 16px"
+                                ></i>
+                                Server Identity
+                            </div>
+                            <div
+                                class="settings-fields"
+                                style="
+                                    display: grid;
+                                    grid-template-columns: 1fr 1fr;
+                                    gap: 20px;
+                                "
+                            >
+                                <div class="form-group">
+                                    <label class="cfg-label"
+                                        >Server Display Name
+                                        <span
+                                            class="info-tip"
+                                            data-tip="The formatted name of the server displayed in the dashboard and server list."
+                                            >i</span
+                                        ></label
+                                    >
+                                    <div
+                                        class="motd-preview"
+                                        style="
+                                            margin-bottom: 8px;
+                                            padding: 10px;
+                                        "
+                                    >
+                                        <div
+                                            class="motd-line1"
+                                            id="settings-servername-preview"
+                                        >
+                                            Awesome Server
+                                        </div>
+                                    </div>
+                                    <input
+                                        type="text"
+                                        id="cfg-display-name"
+                                        class="glass-input"
+                                        style="font-family: monospace"
+                                        onkeyup="
+                                            document.getElementById(
+                                                'settings-servername-preview',
+                                            ).textContent = this.value;
+                                            document.getElementById(
+                                                'settings-motd-title',
+                                            ).textContent = this.value;
+                                        "
+                                    />
+                                </div>
+                                <div class="form-group">
+                                    <label class="cfg-label"
+                                        >MOTD
+                                        <span
+                                            class="info-tip"
+                                            data-tip="The description displayed under your server in the Minecraft server list."
+                                            >i</span
+                                        ></label
+                                    >
+                                    <div
+                                        class="motd-preview"
+                                        style="
+                                            margin-bottom: 14px;
+                                            margin-top: 4px;
+                                        "
+                                    >
+                                        <div
+                                            class="motd-line1"
+                                            id="settings-motd-title"
+                                        >
+                                            A Minecraft Server
+                                        </div>
+                                        <div
+                                            class="motd-line2"
+                                            id="settings-motd-preview-text"
+                                        >
+                                            Welcome to Mero!
+                                        </div>
+                                    </div>
+                                    <div
+                                        id="settings-motd-color-bar"
+                                        style="margin-bottom: 4px"
+                                    ></div>
+                                    <input
+                                        type="text"
+                                        id="settings-motd-input"
+                                        class="glass-input"
+                                        style="font-family: monospace"
+                                        onkeyup="updateSettingsMotdPreview()"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Category: World & Generation -->
+                        <div class="settings-category">
+                            <div class="settings-category-header">
+                                <i
+                                    data-lucide="globe"
+                                    style="width: 16px; height: 16px"
+                                ></i>
+                                World &amp; Generation
+                            </div>
+                            <div class="settings-fields">
+                                <div class="form-group">
+                                    <label class="cfg-label"
+                                        >Level Name
+                                        <span
+                                            class="info-tip"
+                                            data-tip="The name of the world folder. Changing this will create or load a different world."
+                                            >i</span
+                                        ></label
+                                    >
+                                    <input
+                                        type="text"
+                                        id="cfg-level-name"
+                                        class="glass-input"
+                                        value="world"
+                                    />
+                                </div>
+                                <div class="form-group">
+                                    <label class="cfg-label"
+                                        >Level Type
+                                        <span
+                                            class="info-tip"
+                                            data-tip="Determines world generation type. FLAT = superflat, LARGE_BIOMES = bigger biomes, AMPLIFIED = extreme terrain."
+                                            >i</span
+                                        ></label
+                                    >
+                                    <select
+                                        id="cfg-level-type"
+                                        class="glass-input"
+                                    >
+                                        <option value="minecraft:normal">
+                                            Default
+                                        </option>
+                                        <option value="minecraft:flat">
+                                            Flat
+                                        </option>
+                                        <option value="minecraft:large_biomes">
+                                            Large Biomes
+                                        </option>
+                                        <option value="minecraft:amplified">
+                                            Amplified
+                                        </option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="cfg-label"
+                                        >Allow Nether
+                                        <span
+                                            class="info-tip"
+                                            data-tip="Allow players to travel to the Nether dimension via Nether portals."
+                                            >i</span
+                                        ></label
+                                    >
+                                    <select
+                                        id="cfg-allow-nether"
+                                        class="glass-input"
+                                    >
+                                        <option value="true">Enabled</option>
+                                        <option value="false">Disabled</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="cfg-label"
+                                        >Generate Structures
+                                        <span
+                                            class="info-tip"
+                                            data-tip="Whether to generate villages, dungeons, temples, etc. during world generation."
+                                            >i</span
+                                        ></label
+                                    >
+                                    <select
+                                        id="cfg-generate-structures"
+                                        class="glass-input"
+                                    >
+                                        <option value="true">Enabled</option>
+                                        <option value="false">Disabled</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="cfg-label"
+                                        >Max Build Height
+                                        <span
+                                            class="info-tip"
+                                            data-tip="The maximum height players can build up to. Values above 256 are ignored in older versions."
+                                            >i</span
+                                        ></label
+                                    >
+                                    <input
+                                        type="number"
+                                        id="cfg-max-build-height"
+                                        class="glass-input"
+                                        value="256"
+                                        min="1"
+                                        max="320"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Category: Gameplay & Rules -->
+                        <div class="settings-category">
+                            <div class="settings-category-header">
+                                <i
+                                    data-lucide="swords"
+                                    style="width: 16px; height: 16px"
+                                ></i>
+                                Gameplay &amp; Rules
+                            </div>
+                            <div class="settings-fields">
+                                <div class="form-group">
+                                    <label class="cfg-label"
+                                        >Difficulty
+                                        <span
+                                            class="info-tip"
+                                            data-tip="Sets the game difficulty. Peaceful removes hostile mobs. Hard makes mobs deal more damage and hunger depletes faster."
+                                            >i</span
+                                        ></label
+                                    >
+                                    <select
+                                        id="cfg-difficulty"
+                                        class="glass-input"
+                                    >
+                                        <option value="peaceful">
+                                            Peaceful
+                                        </option>
+                                        <option value="easy">Easy</option>
+                                        <option value="normal">Normal</option>
+                                        <option value="hard">Hard</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="cfg-label"
+                                        >PVP
+                                        <span
+                                            class="info-tip"
+                                            data-tip="Enable or disable player-vs-player combat. When disabled, players cannot damage each other."
+                                            >i</span
+                                        ></label
+                                    >
+                                    <select id="cfg-pvp" class="glass-input">
+                                        <option value="true">Enabled</option>
+                                        <option value="false">Disabled</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="cfg-label"
+                                        >Hardcore
+                                        <span
+                                            class="info-tip"
+                                            data-tip="In Hardcore mode, players are permanently banned from the server upon death. Difficulty is locked to Hard."
+                                            >i</span
+                                        ></label
+                                    >
+                                    <select
+                                        id="cfg-hardcore"
+                                        class="glass-input"
+                                    >
+                                        <option value="false">Disabled</option>
+                                        <option value="true">Enabled</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="cfg-label"
+                                        >Allow Flight
+                                        <span
+                                            class="info-tip"
+                                            data-tip="Allows players to use flight in Survival mode if they have a mod or plugin that provides it. Does NOT enable creative flight."
+                                            >i</span
+                                        ></label
+                                    >
+                                    <select
+                                        id="cfg-allow-flight"
+                                        class="glass-input"
+                                    >
+                                        <option value="false">Disabled</option>
+                                        <option value="true">Enabled</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="cfg-label"
+                                        >Spawn Protection
+                                        <span
+                                            class="info-tip"
+                                            data-tip="Radius (in blocks) around the world spawn point that only operators can build in. Set to 0 to disable."
+                                            >i</span
+                                        ></label
+                                    >
+                                    <input
+                                        type="number"
+                                        id="cfg-spawn-protection"
+                                        class="glass-input"
+                                        value="16"
+                                        min="0"
+                                        max="100"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Category: Performance & Limits -->
+                        <div class="settings-category">
+                            <div class="settings-category-header">
+                                <i
+                                    data-lucide="cpu"
+                                    style="width: 16px; height: 16px"
+                                ></i>
+                                Performance &amp; Limits
+                            </div>
+                            <div class="settings-fields">
+                                <div class="form-group">
+                                    <label class="cfg-label"
+                                        >Max Players
+                                        <span
+                                            class="info-tip"
+                                            data-tip="The maximum number of players that can be on the server at the same time."
+                                            >i</span
+                                        ></label
+                                    >
+                                    <input
+                                        type="number"
+                                        id="cfg-max-players"
+                                        class="glass-input"
+                                        value="20"
+                                        min="1"
+                                        max="1000"
+                                    />
+                                </div>
+                                <div class="form-group">
+                                    <label
+                                        class="cfg-label"
+                                        style="
+                                            display: flex;
+                                            justify-content: space-between;
+                                        "
+                                        >View Distance
+                                        <span
+                                            class="info-tip"
+                                            data-tip="How many chunks around each player the server sends. Higher = more RAM/CPU. Range: 2-32."
+                                            >i</span
+                                        ><span
+                                            id="cfg-view-distance-val"
+                                            style="
+                                                color: var(--primary);
+                                                font-size: 0.82rem;
+                                            "
+                                            >10</span
+                                        ></label
+                                    >
+                                    <input
+                                        type="range"
+                                        id="cfg-view-distance"
+                                        class="glass-slider"
+                                        min="2"
+                                        max="32"
+                                        value="10"
+                                        oninput="
+                                            document.getElementById(
+                                                'cfg-view-distance-val',
+                                            ).textContent = this.value
+                                        "
+                                    />
+                                </div>
+                                <div class="form-group">
+                                    <label
+                                        class="cfg-label"
+                                        style="
+                                            display: flex;
+                                            justify-content: space-between;
+                                        "
+                                        >Simulation Distance
+                                        <span
+                                            class="info-tip"
+                                            data-tip="How many chunks around each player are ticked (redstone, mobs, crops, etc). Lower = better TPS. Range: 2-32."
+                                            >i</span
+                                        ><span
+                                            id="cfg-sim-distance-val"
+                                            style="
+                                                color: var(--primary);
+                                                font-size: 0.82rem;
+                                            "
+                                            >10</span
+                                        ></label
+                                    >
+                                    <input
+                                        type="range"
+                                        id="cfg-simulation-distance"
+                                        class="glass-slider"
+                                        min="2"
+                                        max="32"
+                                        value="10"
+                                        oninput="
+                                            document.getElementById(
+                                                'cfg-sim-distance-val',
+                                            ).textContent = this.value
+                                        "
+                                    />
+                                </div>
+                                <div class="form-group">
+                                    <label class="cfg-label"
+                                        >Max Tick Time
+                                        <span
+                                            class="info-tip"
+                                            data-tip="Max milliseconds a single tick can take before the server watchdog shuts it down. Default: 60000. Set to -1 to disable the watchdog."
+                                            >i</span
+                                        ></label
+                                    >
+                                    <input
+                                        type="number"
+                                        id="cfg-max-tick-time"
+                                        class="glass-input"
+                                        value="60000"
+                                        min="-1"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Category: Security & Network -->
+                        <div class="settings-category">
+                            <div class="settings-category-header">
+                                <i
+                                    data-lucide="shield"
+                                    style="width: 16px; height: 16px"
+                                ></i>
+                                Security &amp; Network
+                            </div>
+                            <div class="settings-fields">
+                                <div class="form-group">
+                                    <label class="cfg-label"
+                                        >Online Mode
+                                        <span
+                                            class="info-tip"
+                                            data-tip="When enabled, only authenticated Mojang/Microsoft accounts can join. Disabling allows cracked clients but is a security risk."
+                                            >i</span
+                                        ></label
+                                    >
+                                    <select
+                                        id="cfg-online-mode"
+                                        class="glass-input"
+                                    >
+                                        <option value="true">
+                                            Official (Premium only)
+                                        </option>
+                                        <option value="false">
+                                            Offline (Cracked allowed)
+                                        </option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="cfg-label"
+                                        >Enforce Whitelist
+                                        <span
+                                            class="info-tip"
+                                            data-tip="When enabled, players not on the whitelist are kicked immediately, even if already connected when the whitelist was updated."
+                                            >i</span
+                                        ></label
+                                    >
+                                    <select
+                                        id="cfg-enforce-whitelist"
+                                        class="glass-input"
+                                    >
+                                        <option value="false">Disabled</option>
+                                        <option value="true">Enabled</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="cfg-label"
+                                        >Hide Online Players
+                                        <span
+                                            class="info-tip"
+                                            data-tip="If enabled, the server will not show the player list when clients hover over the player count in the server list."
+                                            >i</span
+                                        ></label
+                                    >
+                                    <select
+                                        id="cfg-hide-online-players"
+                                        class="glass-input"
+                                    >
+                                        <option value="false">Disabled</option>
+                                        <option value="true">Enabled</option>
+                                    </select>
+                                </div>
+                                <!-- P2P Subdomain removed as per request -->
+                                <div class="form-group">
+                                    <label class="cfg-label"
+                                        >Connection Method
+                                        <span
+                                            class="info-tip"
+                                            data-tip="Choose how players connect. Playit.gg is a cloud proxy (best for ease). Mero P2P uses direct UDP Hole Punching (experimental, faster)."
+                                            >i</span
+                                        ></label
+                                    >
+                                    <select
+                                        id="cfg-connection-method"
+                                        class="glass-input"
+                                        onchange="updateConnectionMethodUI()"
+                                    >
+                                        <option value="playit">
+                                            Playit.gg (Cloud Proxy)
+                                        </option>
+                                        <option value="mero-p2p">
+                                            Mero P2P (Direct NAT-Traversal)
+                                        </option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="cfg-label"
+                                        >Server Port
+                                        <span
+                                            class="info-tip"
+                                            data-tip="The TCP port the server listens on. Default is 25565. Requires server restart."
+                                            >i</span
+                                        ></label
+                                    >
+                                    <input
+                                        type="number"
+                                        id="cfg-server-port"
+                                        class="glass-input"
+                                        value="25565"
+                                        min="1024"
+                                        max="65535"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    

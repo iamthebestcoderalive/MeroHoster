@@ -128,8 +128,9 @@ from fastapi import (
     UploadFile,
 )
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 from mcstatus import JavaServer
 from mero_host_net import MeroHost
 from pydantic import BaseModel
@@ -3740,9 +3741,11 @@ app.mount(
 )
 
 
-@app.get("/")
-def root():
-    return FileResponse(os.path.join(BASE_DIR, "static", "index.html"))
+templates = Jinja2Templates(directory=os.path.join(BASE_DIR, "templates"))
+
+@app.get("/", response_class=HTMLResponse)
+def root(request: Request):
+    return templates.TemplateResponse(request=request, name="base.html")
 
 
 def auto_backup_daemon():
@@ -3891,6 +3894,18 @@ def set_playit_key(name: str, req: PlayitKeyReq):
     with open(os.path.join(pdir, "playit.toml"), "w", encoding="utf-8") as f:
         f.write(f'secret_key = "{req.key}"\n')
     return {"message": "Playit key saved. Restart server to apply."}
+
+@app.delete("/api/servers/{name}/playit/key")
+def delete_playit_key(name: str):
+    sp = sdir(name)
+    pdir = os.path.join(sp, ".playit")
+    toml_path = os.path.join(pdir, "playit.toml")
+    if os.path.exists(toml_path):
+        os.remove(toml_path)
+    if name in playit_info:
+        playit_info[name]["claim_url"] = ""
+        playit_info[name]["public_ip"] = ""
+    return {"message": "Playit tunnel reset. Please restart the server to generate a new claim link."}
 
 
 # ─────────────────────────── Entry point ─────────────────────────────────────

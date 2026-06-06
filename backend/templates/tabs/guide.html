@@ -1,0 +1,704 @@
+<!-- ── Quick Setup Guide ──────────────────────────────────────────── -->
+                    <div id="tab-guide" class="tab-content">
+                        <div
+                            class="panel"
+                            style="
+                                position: relative;
+                                overflow: hidden;
+                                background: linear-gradient(
+                                    135deg,
+                                    rgba(16, 185, 129, 0.05) 0%,
+                                    rgba(0, 0, 0, 0) 100%
+                                );
+                                border: 1px solid rgba(16, 185, 129, 0.2);
+                            "
+                        >
+                            <!-- Dopamine Background FX -->
+                            <div
+                                style="
+                                    position: absolute;
+                                    top: -50px;
+                                    right: -50px;
+                                    width: 150px;
+                                    height: 150px;
+                                    background: #10b981;
+                                    filter: blur(100px);
+                                    opacity: 0.3;
+                                    border-radius: 50%;
+                                    pointer-events: none;
+                                "
+                            ></div>
+                            <div
+                                style="
+                                    position: absolute;
+                                    bottom: -50px;
+                                    left: -50px;
+                                    width: 150px;
+                                    height: 150px;
+                                    background: #10b981;
+                                    filter: blur(100px);
+                                    opacity: 0.3;
+                                    border-radius: 50%;
+                                    pointer-events: none;
+                                "
+                            ></div>
+
+                            <h2
+                                style="
+                                    color: #10b981;
+                                    display: flex;
+                                    align-items: center;
+                                    gap: 12px;
+                                    margin-bottom: 8px;
+                                    font-size: 2rem;
+                                    font-weight: 800;
+                                    
+                                "
+                            >
+                                <i
+                                    data-lucide="rocket"
+                                    style="
+                                        width: 32px;
+                                        height: 32px;
+                                        
+                                    "
+                                ></i>
+                                Quick Setup Guide
+                            </h2>
+                            <p
+                                style="
+                                    color: #9ca3af;
+                                    margin-bottom: 30px;
+                                    font-size: 1.1rem;
+                                    max-width: 600px;
+                                "
+                            >
+                                Fast-track your deployment! Distribute your
+                                modpack globally and invite players in seconds
+                                with this rapid checklist.
+                            </p>
+
+                            <div
+                                style="
+                                    display: grid;
+                                    grid-template-columns: repeat(
+                                        auto-fit,
+                                        minmax(280px, 1fr)
+                                    );
+                                    gap: 20px;
+                                "
+                            >
+                                <!-- Step 1 -->
+                                <div
+                                    class="glass-input"
+                                    style="
+                                        padding: 24px;
+                                        border-radius: 12px;
+                                        border-left: 4px solid #334155;
+                                        transition: all 0.3s
+                                            cubic-bezier(0.25, 0.8, 0.25, 1);
+                                        cursor: pointer;
+                                    "
+                                    onmouseover="
+                                        this.style.transform =
+                                            'translateY(-4px)';
+                                        this.style.boxShadow = '0 10px 25px rgba(0, 0, 0, 0.3)';
+                                    "
+                                    onmouseout="
+                                        this.style.transform = 'translateY(0)';
+                                        this.style.boxShadow = 'none';
+                                    "
+                                >
+                                    <div
+                                        style="
+                                            display: flex;
+                                            align-items: center;
+                                            gap: 12px;
+                                            margin-bottom: 12px;
+                                        "
+                                    >
+                                        <div
+                                            style="
+                                                width: 36px;
+                                                height: 36px;
+                                                border-radius: 8px;
+                                                background: rgba(
+                                                    16,
+                                                    185,
+                                                    129,
+                                                    0.15
+                                                );
+                                                display: flex;
+                                                align-items: center;
+                                                justify-content: center;
+                                                color: #10b981;
+                                                font-weight: 800;
+                                            "
+                                        >
+                                            1
+                                        </div>
+                                        <h3
+                                            style="
+                                                margin: 0;
+                                                font-size: 1.2rem;
+                                                color: #fff;
+                                            "
+                                        >
+                                            Create Server
+                                        </h3>
+                                    </div>
+                                    <p
+                                        style="
+                                            color: #a1a1aa;
+                                            font-size: 0.95rem;
+                                            line-height: 1.5;
+                                            margin: 0;
+                                        "
+                                    >
+                                        Click <b>Create Server</b> to set up an
+                                        instance. Mero will automatically
+                                        download and set up the required JRE and
+                                        engine files.
+                                    </p>
+                                </div>
+
+                                <!-- Step 2 -->
+                                <div
+                                    class="glass-input"
+                                    style="
+                                        padding: 24px;
+                                        border-radius: 12px;
+                                        border-left: 4px solid #334155;
+                                        transition: all 0.3s
+                                            cubic-bezier(0.25, 0.8, 0.25, 1);
+                                        cursor: pointer;
+                                    "
+                                    onmouseover="
+                                        this.style.transform =
+                                            'translateY(-4px)';
+                                        this.style.boxShadow = '0 10px 25px rgba(0, 0, 0, 0.3)';
+                                    "
+                                    onmouseout="
+                                        this.style.transform = 'translateY(0)';
+                                        this.style.boxShadow = 'none';
+                                    "
+                                >
+                                    <div
+                                        style="
+                                            display: flex;
+                                            align-items: center;
+                                            gap: 12px;
+                                            margin-bottom: 12px;
+                                        "
+                                    >
+                                        <div
+                                            style="
+                                                width: 36px;
+                                                height: 36px;
+                                                border-radius: 8px;
+                                                background: rgba(
+                                                    16,
+                                                    185,
+                                                    129,
+                                                    0.15
+                                                );
+                                                display: flex;
+                                                align-items: center;
+                                                justify-content: center;
+                                                color: #10b981;
+                                                font-weight: 800;
+                                            "
+                                        >
+                                            2
+                                        </div>
+                                        <h3
+                                            style="
+                                                margin: 0;
+                                                font-size: 1.2rem;
+                                                color: #fff;
+                                            "
+                                        >
+                                            Install Content
+                                        </h3>
+                                    </div>
+                                    <p
+                                        style="
+                                            color: #a1a1aa;
+                                            font-size: 0.95rem;
+                                            line-height: 1.5;
+                                            margin: 0;
+                                        "
+                                    >
+                                        Search and download from the
+                                        <b>Mods & Plugins</b> tab or
+                                        drag-and-drop custom mods,
+                                        resourcepacks, or shaderpacks using the
+                                        <b>File Manager</b>.
+                                    </p>
+                                </div>
+
+                                <!-- Step 3 -->
+                                <div
+                                    class="glass-input"
+                                    style="
+                                        padding: 24px;
+                                        border-radius: 12px;
+                                        border-left: 4px solid #334155;
+                                        transition: all 0.3s
+                                            cubic-bezier(0.25, 0.8, 0.25, 1);
+                                        cursor: pointer;
+                                    "
+                                    onmouseover="
+                                        this.style.transform =
+                                            'translateY(-4px)';
+                                        this.style.boxShadow = '0 10px 25px rgba(0, 0, 0, 0.3)';
+                                    "
+                                    onmouseout="
+                                        this.style.transform = 'translateY(0)';
+                                        this.style.boxShadow = 'none';
+                                    "
+                                >
+                                    <div
+                                        style="
+                                            display: flex;
+                                            align-items: center;
+                                            gap: 12px;
+                                            margin-bottom: 12px;
+                                        "
+                                    >
+                                        <div
+                                            style="
+                                                width: 36px;
+                                                height: 36px;
+                                                border-radius: 8px;
+                                                background: rgba(
+                                                    16,
+                                                    185,
+                                                    129,
+                                                    0.15
+                                                );
+                                                display: flex;
+                                                align-items: center;
+                                                justify-content: center;
+                                                color: #10b981;
+                                                font-weight: 800;
+                                            "
+                                        >
+                                            3
+                                        </div>
+                                        <h3
+                                            style="
+                                                margin: 0;
+                                                font-size: 1.2rem;
+                                                color: #fff;
+                                            "
+                                        >
+                                            Publish Manifest
+                                        </h3>
+                                    </div>
+                                    <p
+                                        style="
+                                            color: #a1a1aa;
+                                            font-size: 0.95rem;
+                                            line-height: 1.5;
+                                            margin: 0;
+                                        "
+                                    >
+                                        Under the Dashboard's *Hardware Specs &
+                                        Sync* card, click <b>Publish</b>. Mero
+                                        builds a delta-sync manifest of all your
+                                        active mods and assets.
+                                    </p>
+                                </div>
+
+                                <!-- Step 4 -->
+                                <div
+                                    class="glass-input"
+                                    style="
+                                        padding: 24px;
+                                        border-radius: 12px;
+                                        border-left: 4px solid #334155;
+                                        transition: all 0.3s
+                                            cubic-bezier(0.25, 0.8, 0.25, 1);
+                                        cursor: pointer;
+                                    "
+                                    onmouseover="
+                                        this.style.transform =
+                                            'translateY(-4px)';
+                                        this.style.boxShadow = '0 10px 25px rgba(0, 0, 0, 0.3)';
+                                    "
+                                    onmouseout="
+                                        this.style.transform = 'translateY(0)';
+                                        this.style.boxShadow = 'none';
+                                    "
+                                >
+                                    <div
+                                        style="
+                                            display: flex;
+                                            align-items: center;
+                                            gap: 12px;
+                                            margin-bottom: 12px;
+                                        "
+                                    >
+                                        <div
+                                            style="
+                                                width: 36px;
+                                                height: 36px;
+                                                border-radius: 8px;
+                                                background: rgba(
+                                                    16,
+                                                    185,
+                                                    129,
+                                                    0.15
+                                                );
+                                                display: flex;
+                                                align-items: center;
+                                                justify-content: center;
+                                                color: #10b981;
+                                                font-weight: 800;
+                                            "
+                                        >
+                                            4
+                                        </div>
+                                        <h3
+                                            style="
+                                                margin: 0;
+                                                font-size: 1.2rem;
+                                                color: #fff;
+                                            "
+                                        >
+                                            Get Invite Code
+                                        </h3>
+                                    </div>
+                                    <p
+                                        style="
+                                            color: #a1a1aa;
+                                            font-size: 0.95rem;
+                                            line-height: 1.5;
+                                            margin: 0;
+                                        "
+                                    >
+                                        Select <i>Mero P2P</i> in Settings, and
+                                        **Start** the server. Copy the generated
+                                        <b>MERO- invite code</b> shown in the
+                                        Dashboard's IP text area.
+                                    </p>
+                                </div>
+
+                                <!-- Step 5 -->
+                                <div
+                                    class="glass-input"
+                                    style="
+                                        grid-column: 1 / -1;
+                                        padding: 24px;
+                                        border-radius: 12px;
+                                        border: 1px solid
+                                            rgba(16, 185, 129, 0.4);
+                                        background: rgba(16, 185, 129, 0.05);
+                                        transition: all 0.3s
+                                            cubic-bezier(0.25, 0.8, 0.25, 1);
+                                        cursor: pointer;
+                                        display: flex;
+                                        align-items: center;
+                                        gap: 24px;
+                                    "
+                                    onmouseover="
+                                        this.style.transform =
+                                            'translateY(-4px) scale(1.01)';
+                                        this.style.boxShadow =
+                                            '0 15px 35px rgba(16, 185, 129, 0.25)';
+                                        this.style.background =
+                                            'rgba(16, 185, 129, 0.1)';
+                                    "
+                                    onmouseout="
+                                        this.style.transform =
+                                            'translateY(0) scale(1)';
+                                        this.style.boxShadow = 'none';
+                                        this.style.background =
+                                            'rgba(16, 185, 129, 0.05)';
+                                    "
+                                >
+                                    <div
+                                        style="
+                                            width: 64px;
+                                            height: 64px;
+                                            border-radius: 16px;
+                                            background: #10b981;
+                                            display: flex;
+                                            align-items: center;
+                                            justify-content: center;
+                                            color: #000;
+                                            font-weight: 900;
+                                            font-size: 1.5rem;
+                                            flex-shrink: 0;
+                                            box-shadow: 0 0 20px
+                                                rgba(16, 185, 129, 0.5);
+                                        "
+                                    >
+                                        5
+                                    </div>
+                                    <div>
+                                        <h3
+                                            style="
+                                                margin: 0 0 8px 0;
+                                                font-size: 1.4rem;
+                                                color: #fff;
+                                                display: flex;
+                                                align-items: center;
+                                                gap: 8px;
+                                            "
+                                        >
+                                            Connect & Sync
+                                            <i
+                                                data-lucide="zap"
+                                                style="color: #10b981"
+                                            ></i>
+                                        </h3>
+                                        <p
+                                            style="
+                                                color: #e4e4e7;
+                                                font-size: 1.05rem;
+                                                line-height: 1.5;
+                                                margin: 0;
+                                            "
+                                        >
+                                            Players paste the code into their
+                                            <b>MeroClient</b>, which
+                                            automatically delta-syncs
+                                            mods/packs, starts a local proxy,
+                                            and bridges connection via UDP P2P!
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div
+                                style="
+                                    margin-top: 30px;
+                                    padding: 16px;
+                                    background: rgba(0, 0, 0, 0.4);
+                                    border-radius: 8px;
+                                    border-left: 3px solid #f59e0b;
+                                    display: flex;
+                                    align-items: center;
+                                    gap: 12px;
+                                "
+                            >
+                                <i
+                                    data-lucide="lightbulb"
+                                    style="
+                                        color: #f59e0b;
+                                        width: 24px;
+                                        height: 24px;
+                                    "
+                                ></i>
+                                <span
+                                    style="color: #d4d4d8; font-size: 0.95rem"
+                                >
+                                    <b>Pro Tip:</b> You can choose between
+                                    Playit.gg (simple cloud proxy with custom
+                                    subdomains) or Mero P2P (direct
+                                    NAT-traversal tunnel with zero-latency
+                                    proxying) in the Settings tab.
+                                </span>
+                            </div>
+
+                            <div
+                                style="
+                                    margin-top: 20px;
+                                    padding: 16px;
+                                    background: rgba(239, 68, 68, 0.1);
+                                    border-radius: 8px;
+                                    border-left: 3px solid #ef4444;
+                                    display: flex;
+                                    align-items: center;
+                                    gap: 12px;
+                                "
+                            >
+                                <i
+                                    data-lucide="alert-triangle"
+                                    style="
+                                        color: #ef4444;
+                                        width: 24px;
+                                        height: 24px;
+                                    "
+                                ></i>
+                                <span
+                                    style="color: #d4d4d8; font-size: 0.95rem"
+                                >
+                                    <b>Premium Asset Warning:</b> The sync
+                                    feature now fully supports
+                                    <code>resourcepacks</code> and
+                                    <code>shaderpacks</code> via the File
+                                    Manager! Drag-and-drop assets into these
+                                    directories, and they will automatically
+                                    synchronize. Note: Extremely large packs may
+                                    impact P2P sync times for players joining
+                                    the server.
+                                </span>
+                            </div>
+                            <div
+                                style="
+                                    margin-top: 40px;
+                                    display: grid;
+                                    grid-template-columns: repeat(
+                                        auto-fit,
+                                        minmax(300px, 1fr)
+                                    );
+                                    gap: 20px;
+                                "
+                            >
+                                <!-- About the Hoster -->
+                                <div
+                                    class="glass-input"
+                                    style="
+                                        padding: 24px;
+                                        border-radius: 12px;
+                                        border-top: 4px solid #10b981;
+                                        transition: transform 0.3s ease;
+                                    "
+                                    onmouseover="
+                                        this.style.transform =
+                                            'translateY(-4px)'
+                                    "
+                                    onmouseout="
+                                        this.style.transform = 'translateY(0)'
+                                    "
+                                >
+                                    <h3
+                                        style="
+                                            color: #10b981;
+                                            margin: 0 0 12px 0;
+                                            display: flex;
+                                            align-items: center;
+                                            gap: 8px;
+                                        "
+                                    >
+                                        <i
+                                            data-lucide="info"
+                                            style="width: 20px; height: 20px"
+                                        ></i>
+                                        About the Hoster
+                                    </h3>
+                                    <p
+                                        style="
+                                            color: #a1a1aa;
+                                            font-size: 0.95rem;
+                                            line-height: 1.6;
+                                            margin: 0;
+                                        "
+                                    >
+                                        Mero Server Hoster is a next-generation
+                                        lightweight Minecraft server management
+                                        platform. Designed with a custom Emerald
+                                        and Black aesthetic, it provides users
+                                        with premium features like auto-Modrinth
+                                        resolution, Playit.gg tunneling, and
+                                        asynchronous mod downloading natively.
+                                    </p>
+                                </div>
+
+                                <!-- Playit.gg Advanced Integration -->
+                                <div
+                                    class="glass-input"
+                                    style="
+                                        padding: 24px;
+                                        border-radius: 12px;
+                                        border-top: 4px solid #10b981;
+                                        transition: transform 0.3s ease;
+                                    "
+                                    onmouseover="
+                                        this.style.transform =
+                                            'translateY(-4px)'
+                                    "
+                                    onmouseout="
+                                        this.style.transform = 'translateY(0)'
+                                    "
+                                >
+                                    <h3
+                                        style="
+                                            color: #10b981;
+                                            margin: 0 0 12px 0;
+                                            display: flex;
+                                            align-items: center;
+                                            gap: 8px;
+                                        "
+                                    >
+                                        <i
+                                            data-lucide="globe"
+                                            style="width: 20px; height: 20px"
+                                        ></i>
+                                        Playit.gg Integration
+                                    </h3>
+                                    <p
+                                        style="
+                                            color: #a1a1aa;
+                                            font-size: 0.95rem;
+                                            line-height: 1.6;
+                                            margin: 0;
+                                        "
+                                    >
+                                        We integrate with the Playit.gg
+                                        tunneling system to securely expose your
+                                        server without port forwarding. The
+                                        backend daemon automatically binds the
+                                        tunnel agent, establishing a cloud-proxy
+                                        tunnel and routing traffic directly to
+                                        your local server.
+                                    </p>
+                                </div>
+
+                                <!-- MeroP2P Client -->
+                                <div
+                                    class="glass-input"
+                                    style="
+                                        padding: 24px;
+                                        border-radius: 12px;
+                                        border-top: 4px solid #10b981;
+                                        transition: transform 0.3s ease;
+                                    "
+                                    onmouseover="
+                                        this.style.transform =
+                                            'translateY(-4px)'
+                                    "
+                                    onmouseout="
+                                        this.style.transform = 'translateY(0)'
+                                    "
+                                >
+                                    <h3
+                                        style="
+                                            color: #10b981;
+                                            margin: 0 0 12px 0;
+                                            display: flex;
+                                            align-items: center;
+                                            gap: 8px;
+                                        "
+                                    >
+                                        <i
+                                            data-lucide="shield-check"
+                                            style="width: 20px; height: 20px"
+                                        ></i>
+                                        MeroP2P Client
+                                    </h3>
+                                    <p
+                                        style="
+                                            color: #a1a1aa;
+                                            font-size: 0.95rem;
+                                            line-height: 1.6;
+                                            margin: 0;
+                                        "
+                                    >
+                                        The MeroClient allows players to
+                                        seamlessly connect to your server. By
+                                        pasting your Mero Invite Code, the
+                                        client automatically extracts the
+                                        manifest, delta-syncs all client-side
+                                        mods/packs, and tunnels connection over
+                                        a secure peer-to-peer UDP bridge.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    
