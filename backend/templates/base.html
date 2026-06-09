@@ -17,7 +17,111 @@
                 alert("JS Error: " + msg + "\nLine: " + line);
                 return false;
             };
-        </script>
+        
+        let currentUpdatePlan = null;
+        
+        async function scanForUpdates() {
+            if (!currentServer) return;
+            document.getElementById('host-update-modal').style.display = 'flex';
+            document.getElementById('host-update-loading').style.display = 'block';
+            document.getElementById('host-update-content').style.display = 'none';
+            document.getElementById('host-update-actions').style.display = 'none';
+            
+            try {
+                const res = await fetch(`/api/servers/${currentServer}/scan_updates`, { method: 'POST' });
+                const data = await res.json();
+                if (data.error) {
+                    alert(data.error);
+                    document.getElementById('host-update-modal').style.display = 'none';
+                    return;
+                }
+                currentUpdatePlan = data.plan;
+                renderUpdateManager(currentUpdatePlan);
+            } catch (e) {
+                alert("Scan failed: " + e);
+                document.getElementById('host-update-modal').style.display = 'none';
+            }
+        }
+        
+        function renderUpdateManager(plan) {
+            document.getElementById('host-update-loading').style.display = 'none';
+            document.getElementById('host-update-content').style.display = 'block';
+            document.getElementById('host-update-actions').style.display = 'flex';
+            
+            const readyList = document.getElementById('hu-ready-list');
+            const chainList = document.getElementById('hu-chain-list');
+            const delList = document.getElementById('hu-deleted-list');
+            
+            readyList.innerHTML = '';
+            chainList.innerHTML = '';
+            delList.innerHTML = '';
+            
+            let count = 0;
+            
+            if (plan.ready && plan.ready.length > 0) {
+                plan.ready.forEach(i => {
+                    readyList.innerHTML += `<div style="padding: 5px 0;">🔄 <b>${i.old_filename}</b> ➔ <b>${i.filename}</b></div>`;
+                    count++;
+                });
+            } else {
+                readyList.innerHTML = '<div style="color: var(--text-muted);">None</div>';
+            }
+            
+            if (plan.chain && plan.chain.length > 0) {
+                plan.chain.forEach(i => {
+                    chainList.innerHTML += `<div style="padding: 5px 0;">🔗 <b>${i.old_filename}</b> ➔ <b>${i.filename}</b> <span style="color: var(--warning); font-size: 0.85em;">(${i.reason})</span></div>`;
+                    count++;
+                });
+            } else {
+                chainList.innerHTML = '<div style="color: var(--text-muted);">None</div>';
+            }
+            
+            if (plan.deleted && plan.deleted.length > 0) {
+                plan.deleted.forEach(i => {
+                    delList.innerHTML += `<div style="padding: 5px 0;">❌ <b>${i.filename}</b> <span style="color: var(--danger); font-size: 0.85em;">(${i.reason})</span></div>`;
+                    count++;
+                });
+            } else {
+                delList.innerHTML = '<div style="color: var(--text-muted);">None</div>';
+            }
+            
+            const btn = document.getElementById('host-update-confirm-btn');
+            if (count === 0 && (!plan.deleted || plan.deleted.length === 0)) {
+                btn.innerText = "Everything is up to date!";
+                btn.disabled = true;
+                btn.className = "btn outline";
+            } else {
+                btn.innerText = "Confirm & Execute";
+                btn.disabled = false;
+                btn.className = "btn success";
+            }
+            lucide.createIcons();
+        }
+        
+        async function confirmHostUpdates() {
+            if (!currentServer || !currentUpdatePlan) return;
+            const btn = document.getElementById('host-update-confirm-btn');
+            btn.innerText = "Applying...";
+            btn.disabled = true;
+            
+            try {
+                const res = await fetch(`/api/servers/${currentServer}/apply_updates`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ plan: currentUpdatePlan })
+                });
+                await res.json();
+                document.getElementById('host-update-modal').style.display = 'none';
+                fetchInstalledMods(); // Refresh the grid
+                alert("Updates applied successfully!");
+            } catch (e) {
+                alert("Apply failed: " + e);
+            }
+            btn.innerText = "Confirm & Execute";
+            btn.disabled = false;
+        }
+
+</script>
     </head>
 
     <body>
@@ -33,6 +137,49 @@
                 </div>
             </div>
         </div>
+
+        <div class="modal-overlay" id="custom-confirm-modal" style="display: none; z-index: 10000; align-items: center; justify-content: center;">
+            <div class="modal panel" style="width: 450px; max-width: 90vw; padding: 30px; border-radius: 16px; text-align: center;">
+                <i data-lucide="alert-triangle" style="width: 48px; height: 48px; color: var(--warning); margin-bottom: 20px;"></i>
+                <h3 style="margin-bottom: 10px; font-size: 1.5rem;" id="custom-confirm-title">Confirm Action</h3>
+                <p id="custom-confirm-text" style="color: var(--text-dim); margin-bottom: 25px; line-height: 1.5;">Are you sure?</p>
+                <div style="display: flex; gap: 10px; justify-content: center;">
+                    <button id="custom-confirm-yes" class="btn success" style="flex: 1; padding: 12px; font-size: 1rem; justify-content: center;">Yes</button>
+                    <button id="custom-confirm-no" class="btn" style="flex: 1; padding: 12px; font-size: 1rem; justify-content: center; background: transparent; border: 1px solid var(--danger); color: var(--danger);">No</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="modal-overlay" id="host-update-modal" style="display: none; z-index: 10000; align-items: center; justify-content: center;">
+            <div class="modal panel" style="width: 800px; max-width: 90vw; max-height: 80vh; padding: 30px; border-radius: 16px; text-align: left; display: flex; flex-direction: column;">
+                <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 20px;">
+                    <i data-lucide="arrow-up-circle" style="width: 32px; height: 32px; color: var(--success);"></i>
+                    <h3 style="margin: 0; font-size: 1.5rem;">Smart Update Manager</h3>
+                </div>
+                
+                <div id="host-update-loading" style="text-align: center; padding: 40px;">
+                    <i data-lucide="refresh-cw" style="width: 48px; height: 48px; color: var(--primary); margin-bottom: 1.5rem; animation: spin 2s linear infinite;"></i>
+                    <p style="color: var(--text-dim);">Analyzing dependency graphs and calculating constraints...</p>
+                </div>
+                
+                <div id="host-update-content" style="display: none; flex: 1; overflow-y: auto; padding-right: 10px;">
+                    <h4 style="color: var(--success); margin-bottom: 10px;">Ready to Update</h4>
+                    <div id="hu-ready-list" style="margin-bottom: 20px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px;"></div>
+                    
+                    <h4 style="color: var(--warning); margin-bottom: 10px;">Chain Updates (Dependencies)</h4>
+                    <div id="hu-chain-list" style="margin-bottom: 20px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px;"></div>
+                    
+                    <h4 style="color: var(--danger); margin-bottom: 10px;">Will Be Deleted (Incompatible)</h4>
+                    <div id="hu-deleted-list" style="margin-bottom: 20px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px;"></div>
+                </div>
+                
+                <div id="host-update-actions" style="display: none; margin-top: 20px; gap: 10px; justify-content: flex-end; border-top: 1px solid var(--border); padding-top: 20px;">
+                    <button class="btn" onclick="document.getElementById('host-update-modal').style.display='none'" style="background: transparent; border: 1px solid var(--border);">Cancel</button>
+                    <button id="host-update-confirm-btn" class="btn success" onclick="confirmHostUpdates()">Confirm & Execute</button>
+                </div>
+            </div>
+        </div>
+
         <!-- Full screen update overlay -->
         <div id="update-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: var(--bg); z-index: 99999; flex-direction: column; align-items: center; justify-content: center; color: var(--text-main);">
             <div style="background: var(--panel); padding: 3rem; border-radius: 16px; border: 1px solid var(--border); box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); text-align: center; max-width: 450px; width: 90%;">
@@ -1570,6 +1717,18 @@
                                         ></i>
                                         Refresh
                                     </button>
+                                    <button
+                                        class="btn success"
+                                        onclick="scanForUpdates()"
+                                        style="margin-left: 10px; white-space: nowrap; flex-shrink: 0;"
+                                    >
+                                        <i
+                                            data-lucide="arrow-up-circle"
+                                            style="width: 16px; height: 16px"
+                                        ></i>
+                                        Update Mods
+                                    </button>
+
                                 </div>
                             </div>
                             <div

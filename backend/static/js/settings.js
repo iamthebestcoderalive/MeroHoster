@@ -94,6 +94,7 @@ async function fetchConfig() {
     setVal("cfg-hide-online-players", "hide-online-players", "false");
     setVal("cfg-subdomain", "subdomain", "");
     setVal("cfg-connection-method", "connection-method", "playit");
+    setVal("cfg-manifest-sync", "manifest-sync", "manual");
     setVal("cfg-server-port", "server-port", "25565");
 
     updateConnectionMethodUI();
@@ -187,6 +188,7 @@ async function saveSettings(btn) {
       ram: parseInt(get("cfg-ram")),
       subdomain: get("cfg-subdomain"),
       "connection-method": get("cfg-connection-method"),
+      "manifest-sync": get("cfg-manifest-sync") || "manual",
     };
 
     await apiPost(`/servers/${encodeURIComponent(currentServer)}/config`, {

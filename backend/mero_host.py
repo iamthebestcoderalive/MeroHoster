@@ -422,12 +422,11 @@ def capture(proc, name, conn_method="playit"):
                             pdir = os.path.join(sdir(name), ".playit")
                             os.makedirs(pdir, exist_ok=True)
                             pp = subprocess.Popen(
-                                [PLAYIT_EXE, "--secret_path", "playit.toml", "start"],
+                                [PLAYIT_EXE, "-s", "--secret_path", "playit.toml", "start"],
                                 cwd=pdir,
                                 stdout=subprocess.PIPE,
                                 stderr=subprocess.STDOUT,
-                                text=True,
-                                bufsize=1,
+                                bufsize=0,
                                 creationflags=subprocess.CREATE_NO_WINDOW if hasattr(subprocess, 'CREATE_NO_WINDOW') else 0,
                             )
                             playit_procs[name] = pp
@@ -513,12 +512,11 @@ def capture(proc, name, conn_method="playit"):
                         pdir = os.path.join(sdir(name), ".playit")
                         os.makedirs(pdir, exist_ok=True)
                         pp = subprocess.Popen(
-                            [PLAYIT_EXE, "start"],
+                            [PLAYIT_EXE, "-s", "--secret_path", "playit.toml", "start"],
                             cwd=pdir,
                             stdout=subprocess.PIPE,
                             stderr=subprocess.STDOUT,
-                            text=True,
-                            bufsize=1,
+                            bufsize=0,
                             creationflags=subprocess.CREATE_NO_WINDOW if hasattr(subprocess, 'CREATE_NO_WINDOW') else 0,
                         )
                         playit_procs[name] = pp
@@ -554,23 +552,25 @@ def capture(proc, name, conn_method="playit"):
     except Exception:
         pass
     # Mark server as stopped when process ends (handles both "running" and "starting" phases)
-    phase = server_state.get(name, {}).get("phase")
-    if phase in ("running", "starting"):
-        server_state[name]["phase"] = "stopped"
-        log(name, "[Mero] ⚠️ Server process exited.")
-        
-        # --- Push offline status to signaling bucket ---
-        try:
-            meta_path = os.path.join(sdir(name), "meta.json")
-            if os.path.exists(meta_path):
-                import json, requests
-                with open(meta_path, "r", encoding="utf-8") as f:
-                    meta = json.load(f)
-                signal_bucket = meta.get("signal_bucket")
-                if signal_bucket:
-                    httpx.put(signal_bucket, json={"status": "offline"}, headers={"Accept": "application/json", "Content-Type": "application/json"}, timeout=5)
-        except Exception as e:
-            logger.error(f"Failed to push offline status: {e}")
+    # ONLY if this capture thread corresponds to the active running process!
+    current_state = server_state.get(name, {})
+    if current_state.get("process") == proc:
+        phase = current_state.get("phase")
+        if phase in ("running", "starting"):
+            server_state[name]["phase"] = "stopped"
+            log(name, "[Mero] ⚠️ Server process exited.")
+            
+            # --- Push offline status to signaling bucket ---
+            try:
+                meta_path = os.path.join(sdir(name), "meta.json")
+                if os.path.exists(meta_path):
+                    with open(meta_path, "r", encoding="utf-8") as f:
+                        meta = json.load(f)
+                    signal_bucket = meta.get("signal_bucket")
+                    if signal_bucket:
+                        httpx.put(signal_bucket, json={"status": "offline"}, headers={"Accept": "application/json", "Content-Type": "application/json"}, timeout=5)
+            except Exception as e:
+                logger.error(f"Failed to push offline status: {e}")
 
     # Restore AutoModpack mod (rename .jar.disabled to .jar) on server exit
     try:
@@ -612,7 +612,17 @@ def run_mero_p2p(host, name):
                 try:
                     with open(meta_path, "r", encoding="utf-8") as f:
                         meta = json.load(f)
-                    m_url = meta.get("manifest_url", "")
+                    if meta.get("manifest-sync", "manual") == "automatic":
+                        log(name, "[Mero] 🔄 Automatic manifest sync initiated...")
+                        try:
+                            res = asyncio.run(publish_manifest(name))
+                            m_url = res.get("url", "")
+                            meta["manifest_url"] = m_url
+                        except Exception as ex:
+                            log(name, f"[Mero] ⚠️ Automatic manifest sync failed: {ex}")
+                            m_url = meta.get("manifest_url", "")
+                    else:
+                        m_url = meta.get("manifest_url", "")
                 except Exception:
                     pass
 
@@ -667,59 +677,104 @@ def run_mero_p2p(host, name):
         log(name, f"[Mero] ❌ P2P Error: {e}")
 
 
-def read_playit(proc, name):
-    playit_info.setdefault(name, {"claim_url": "", "public_ip": ""})
-    # Heavy-duty regex to strip all Playit UI codes (like [2J and 8)
-    ansi_escape = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])|\r")
-    _last_logged_line = None
+def query_playit_tunnels(name):
     try:
-        for line in iter(proc.stdout.readline, ""):
-            line = ansi_escape.sub("", line).strip()
-            if not line:
-                continue
-
-            lower = line.lower()
-            if "failed to load latest tunnels" in lower or "got error" in lower:
-                continue
-
-            # 1. Catch the Claim URL
-            m = re.search(r"(https://playit\.gg/claim/[a-zA-Z0-9]+)", line)
-            if m:
-                playit_info[name]["claim_url"] = m.group(1)
-                continue
-
-            # 2. Catch the Public IP (Supports .playit.gg and .joinmc.link)
-            m2 = re.search(r"([a-zA-Z0-9.-]+\.(?:playit\.gg|joinmc\.link))", line)
-            if m2 and "playit.gg/claim" not in m2.group(1):
-                playit_info[name]["public_ip"] = m2.group(1)
-                continue
-
-            # 3. BLOCK THE SPAM
-            if "tunnel running" in lower and "tunnels registered" in lower:
-                continue  # Silently skip the repeating status logs
-
-            # 4. Log everything else cleanly
-            if line == _last_logged_line:
-                continue
-
-            if any(
-                kw in lower
-                for kw in (
-                    "error",
-                    "warn",
-                    "connected",
-                    "tunnel",
-                    "agent",
-                    "started",
-                    "failed",
-                    "running",
-                    "listening",
-                )
-            ):
-                log(name, "[Playit] " + line)
-                _last_logged_line = line
+        sp = sdir(name)
+        pdir = os.path.join(sp, ".playit")
+        toml_path = os.path.join(pdir, "playit.toml")
+        if not os.path.exists(toml_path):
+            return None
+        
+        proc = subprocess.Popen(
+            [PLAYIT_EXE, "--secret_path", "playit.toml", "tunnels", "list"],
+            cwd=pdir,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            creationflags=subprocess.CREATE_NO_WINDOW if hasattr(subprocess, 'CREATE_NO_WINDOW') else 0
+        )
+        out, _ = proc.communicate(timeout=3)
+        for line in out.splitlines():
+            parts = line.strip().split()
+            if len(parts) >= 4:
+                pub_addr = parts[3]
+                if pub_addr and "." in pub_addr:
+                    return pub_addr
     except Exception:
         pass
+    return None
+
+
+def read_playit(proc, name):
+    playit_info.setdefault(name, {"claim_url": "", "public_ip": ""})
+    ansi_escape = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])|\r")
+    _last_logged_line = None
+    claim_opened = False
+    try:
+        buffer = b""
+        while True:
+            char = proc.stdout.read(1)
+            if not char:
+                break
+            buffer += char
+            
+            # Playit interactive spinner uses \x08 (backspace), \r and \n to rewrite lines dynamically
+            if char in (b"\n", b"\r", b"\x08"):
+                line_str = buffer.decode("utf-8", errors="ignore")
+                line = ansi_escape.sub("", line_str).strip()
+                buffer = b""
+                if not line:
+                    continue
+
+                lower = line.lower()
+                if "failed to load latest tunnels" in lower or "got error" in lower:
+                    continue
+
+                # 1. Catch the Claim URL
+                m = re.search(r"(https://playit\.gg/claim/[a-zA-Z0-9]+)", line)
+                if m:
+                    playit_info[name]["claim_url"] = m.group(1)
+                    if not claim_opened:
+                        import webbrowser
+                        webbrowser.open(m.group(1))
+                        claim_opened = True
+                    continue
+
+                # 2. Catch the Public IP (Supports .playit.gg and .joinmc.link)
+                m2 = re.search(r"([a-zA-Z0-9.-]+\.(?:playit\.gg|joinmc\.link))", line)
+                if m2 and "playit.gg/claim" not in m2.group(1):
+                    playit_info[name]["public_ip"] = m2.group(1)
+                    continue
+
+                # 3. BLOCK THE SPAM
+                if "tunnel running" in lower and "tunnels registered" in lower:
+                    continue  # Silently skip the repeating status logs
+
+                # 4. Log everything else cleanly
+                clean_log = line.replace('\x08', '').strip()
+                if not clean_log or clean_log == _last_logged_line or clean_log.startswith("8") or clean_log.startswith("checking"):
+                    continue
+
+                if any(
+                    kw in lower
+                    for kw in (
+                        "error",
+                        "warn",
+                        "connected",
+                        "tunnel",
+                        "agent",
+                        "started",
+                        "failed",
+                        "running",
+                        "listening",
+                        "visit link",
+                        "playit.gg/claim"
+                    )
+                ):
+                    log(name, "[Playit] " + clean_log)
+                    _last_logged_line = clean_log
+    except Exception as e:
+        logger.error(f"Error reading playit output: {e}")
 
 
 # ─────────────────────────── Installation (sync, runs in thread) ─────────────
@@ -963,6 +1018,11 @@ def _boot_server_inner(name: str, state: dict):
     with open(meta_path, encoding="utf-8") as f:
         meta = json.load(f)
     req_type, req_version = meta["type"], meta["version"]
+
+    # Ensure resourcepacks and shaderpacks folders exist for non-vanilla servers (modded & plugin servers)
+    if req_type.lower() != "vanilla":
+        os.makedirs(os.path.join(server_path, "resourcepacks"), exist_ok=True)
+        os.makedirs(os.path.join(server_path, "shaderpacks"), exist_ok=True)
 
     # Migration for modern Forge files from bin/ to root server_path
     if os.path.exists(bin_path):
@@ -1245,6 +1305,8 @@ def create_server(req: ServerCreate, background_tasks: BackgroundTasks):
         os.makedirs(os.path.join(sp, "shaderpacks"), exist_ok=True)
     elif stype in ["paper", "purpur", "spigot", "bukkit"]:
         os.makedirs(os.path.join(sp, "plugins"), exist_ok=True)
+        os.makedirs(os.path.join(sp, "resourcepacks"), exist_ok=True)
+        os.makedirs(os.path.join(sp, "shaderpacks"), exist_ok=True)
 
     # 2. Automated First-Boot (EULA Cheat)
     with open(os.path.join(sp, "eula.txt"), "w", encoding="utf-8") as f:
@@ -1363,7 +1425,8 @@ def get_public_ip():
 
 def _fetch_system_specs_bg():
     global _system_specs_cache
-    ram_gb = round(psutil.virtual_memory().total / (1024**3))
+    import math
+    ram_gb = math.ceil(psutil.virtual_memory().total / (1024**3))
 
     manufacturer = "Local"
     model = "Device"
@@ -1463,6 +1526,17 @@ def _fetch_system_specs_bg():
                 pass
     except Exception as e:
         logger.error(f"PowerShell fallback failed: {e}")
+
+    try:
+        total_disk_bytes = sum(psutil.disk_usage(p.mountpoint).total for p in psutil.disk_partitions() if p.fstype)
+        tb = total_disk_bytes / (1024**4)
+        if tb >= 0.9:
+            disk_size = f"{round(tb)} TB"
+        else:
+            disk_size = f"{round(total_disk_bytes / (1024**3))} GB"
+        disk_type = f"{disk_size} {disk_type}"
+    except Exception:
+        pass
 
     _system_specs_cache = {
         "total_ram_gb": ram_gb,
@@ -1798,6 +1872,7 @@ def stop_server(name: str, force: bool = False):
     pp = playit_procs.get(name)
     if pp and pp.poll() is None:
         pp.terminate()
+    playit_info.pop(name, None)  # Clean playit cache
     mh = mero_p2p_hosts.get(name)
     if mh:
         mh.stop()
@@ -1834,6 +1909,7 @@ def restart_server(name: str):
     pp = playit_procs.get(name)
     if pp and pp.poll() is None:
         pp.terminate()
+    playit_info.pop(name, None)  # Clean playit cache
     mh = mero_p2p_hosts.get(name)
     if mh:
         mh.stop()
@@ -1877,7 +1953,7 @@ def delete_server(name: str):
         mh.stop()
     # pinggy removed
 
-    def _robust_remove(func, path, exc_info):
+    def _robust_remove(func, path, *args):
         """Handle Windows file-lock / read-only errors during rmtree."""
         try:
             os.chmod(path, stat.S_IWRITE)
@@ -1886,10 +1962,17 @@ def delete_server(name: str):
             pass  # will be retried below
 
     # Try up to 3 times with a short delay for Windows to release file locks
+    import sys
+    rmtree_kwargs = {}
+    if sys.version_info >= (3, 12):
+        rmtree_kwargs["onexc"] = _robust_remove
+    else:
+        rmtree_kwargs["onerror"] = _robust_remove
+
     last_err = None
     for attempt in range(3):
         try:
-            shutil.rmtree(sp, onexc=_robust_remove)
+            shutil.rmtree(sp, **rmtree_kwargs)
             break
         except Exception as e:
             last_err = e
@@ -2041,7 +2124,21 @@ def get_stats(name: str):
     content_folders_exist = any(
         os.path.isdir(os.path.join(sp, d)) for d in ("mods", "plugins", "resourcepacks")
     )
-    is_initialized = jar_exists and content_folders_exist
+    is_initialized = jar_exists and (
+        content_folders_exist
+        or os.path.exists(os.path.join(sp, "server.properties"))
+        or os.path.exists(os.path.join(sp, "logs"))
+        or os.path.exists(os.path.join(sp, "world"))
+    )
+
+    # Auto-query playit tunnels if public_ip is not resolved yet
+    if phase == "running" and meta.get("connection-method", "playit") == "playit":
+        info = playit_info.setdefault(name, {"claim_url": "", "public_ip": ""})
+        if not info.get("public_ip"):
+            pub_ip = query_playit_tunnels(name)
+            if pub_ip:
+                info["public_ip"] = pub_ip
+                info["claim_url"] = ""
 
     base_stats = {
         "display_name": meta.get("display_name", name),
@@ -2056,9 +2153,10 @@ def get_stats(name: str):
         "ram": meta.get("ram", 4),
         "premade_ip": meta.get("premade_ip", ""),
         "connection_method": meta.get("connection-method", "playit"),
+        "manifest_sync": meta.get("manifest-sync", "manual"),
         "tunnel": (
             playit_info.get(name, {})
-            if name in playit_info
+            if meta.get("connection-method", "playit") == "playit"
             else (
                 {"public_ip": mero_p2p_info[name]["invite_code"], "is_p2p": True}
                 if name in mero_p2p_info
@@ -2367,7 +2465,7 @@ async def publish_manifest(name: str):
         
         if cached:
             if cached.get("is_local"):
-                host_ip = get_local_ip()
+                host_ip = "mero-host"
                 download_url = f"http://{host_ip}:8000/api/servers/{name}/download/{folder}/{fn}"
             else:
                 download_url = cached["url"]
@@ -2391,7 +2489,7 @@ async def publish_manifest(name: str):
                 download_url = data["files"][0]["url"]
                 is_local = False
             else:
-                host_ip = get_local_ip()
+                host_ip = "mero-host"
                 download_url = f"http://{host_ip}:8000/api/servers/{name}/download/{folder}/{fn}"
                 
             # Cache the result
@@ -2409,7 +2507,7 @@ async def publish_manifest(name: str):
                 "folder": folder
             }
         except Exception:
-            host_ip = get_local_ip()
+            host_ip = "mero-host"
             return {
                 "filename": fn,
                 "url": f"http://{host_ip}:8000/api/servers/{name}/download/{folder}/{fn}",
@@ -2514,7 +2612,7 @@ async def publish_manifest(name: str):
         upload_url = await upload_paste_rs()
     if not upload_url:
         logger.info("All cloud uploads failed. Falling back to local manifest URL...")
-        host_ip = get_local_ip()
+        host_ip = "mero-host"
         upload_url = f"http://{host_ip}:8000/api/servers/{name}/manifest/raw"
 
     # ── 6. Cache the URL ───────────────────────────────────────────────────
@@ -3169,7 +3267,7 @@ async def resolve_and_download(
         loaders = '["fabric"]'
 
     url = f'https://api.modrinth.com/v2/project/{req.project_id}/version?game_versions=["{meta["version"]}"]'
-    if loaders:
+    if loaders and req.project_type not in ("resourcepack", "shader"):
         import urllib.parse
         url += f'&loaders={urllib.parse.quote(loaders)}'
 
@@ -3623,22 +3721,23 @@ def create_backup(name: str, background_tasks: BackgroundTasks = None):
     zip_name = f"backup_{timestamp}.zip"
     zip_path = os.path.join(bp, zip_name)
 
-    worlds = get_world_folders(sp)
     try:
         with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
-            for w in worlds:
-                wp = os.path.join(sp, w)
-                if os.path.exists(wp):
-                    for root, dirs, files in os.walk(wp):
-                        for f in files:
-                            if f == "session.lock":
-                                continue
-                            fp = os.path.join(root, f)
-                            arcname = os.path.relpath(fp, sp)
-                            try:
-                                zf.write(fp, arcname)
-                            except PermissionError:
-                                pass  # Skip locked files
+            for root, dirs, files in os.walk(sp):
+                # Exclude specific folders from being backed up
+                if "backups" in dirs:
+                    dirs.remove("backups")
+                if ".playit" in dirs:
+                    dirs.remove(".playit")
+                for f in files:
+                    if f == "session.lock":
+                        continue
+                    fp = os.path.join(root, f)
+                    arcname = os.path.relpath(fp, sp)
+                    try:
+                        zf.write(fp, arcname)
+                    except PermissionError:
+                        pass  # Skip locked files
 
     except Exception as e:
         if is_running:
@@ -3705,12 +3804,18 @@ def restore_backup(name: str, req: RestoreBackupReq):
         )
 
     try:
-        worlds = get_world_folders(sp)
-        # Delete existing worlds
-        for w in worlds:
-            wp = os.path.join(sp, w)
-            if os.path.exists(wp):
-                shutil.rmtree(wp, ignore_errors=True)
+        # Delete existing server files except backups and .playit
+        for item in os.listdir(sp):
+            if item in ["backups", ".playit"]:
+                continue
+            item_path = os.path.join(sp, item)
+            try:
+                if os.path.isdir(item_path):
+                    shutil.rmtree(item_path, ignore_errors=True)
+                else:
+                    os.remove(item_path)
+            except Exception:
+                pass
 
         # Extract zip
         with zipfile.ZipFile(bp, "r") as zf:
@@ -3728,12 +3833,35 @@ def delete_backup_file(name: str, filename: str):
     return {"message": "Deleted"}
 
 
-@app.get("/api/servers/{name}/backups/{filename}/download")
-def download_backup_file(name: str, filename: str):
+@app.get("/api/servers/{name}/backups/{filename}/save")
+def save_backup_file(name: str, filename: str):
     bp = os.path.join(sdir(name), "backups", filename)
     if not os.path.exists(bp):
         raise HTTPException(404, "Backup not found")
-    return FileResponse(bp, filename=filename)
+        
+    try:
+        import tkinter as tk
+        from tkinter import filedialog
+        root = tk.Tk()
+        root.withdraw()
+        root.attributes('-topmost', True)
+        
+        save_path = filedialog.asksaveasfilename(
+            defaultextension=".zip",
+            initialfile=filename,
+            title="Save Backup As",
+            filetypes=[("ZIP Archive", "*.zip")]
+        )
+        root.destroy()
+        
+        if save_path:
+            import shutil
+            shutil.copy(bp, save_path)
+            return {"message": "Backup saved successfully!"}
+        else:
+            return {"message": "Save cancelled"}
+    except Exception as e:
+        raise HTTPException(500, f"Error saving backup: {e}")
 
 
 app.mount(
@@ -3742,6 +3870,72 @@ app.mount(
 
 
 templates = Jinja2Templates(directory=os.path.join(BASE_DIR, "templates"))
+
+
+from updater import ModUpdater
+
+@app.post("/api/servers/{server_name}/scan_updates")
+def scan_updates(server_name: str):
+    server_dir = os.path.join(SERVERS_DIR, server_name)
+    manifest_path = os.path.join(server_dir, "manifest.json")
+    if not os.path.exists(manifest_path):
+        return {"error": "No manifest found."}
+        
+    with open(manifest_path, "r", encoding="utf-8") as f:
+        manifest = json.load(f)
+        
+    mc_version = manifest.get("minecraft_version")
+    loader = manifest.get("loader_type")
+    installed_mods = manifest.get("mods", [])
+    
+    if not mc_version or not loader:
+        return {"error": "Manifest missing version/loader."}
+        
+    updater = ModUpdater(mc_version, loader)
+    plan = updater.scan_updates(installed_mods)
+    return {"plan": plan}
+
+class ApplyUpdatesReq(BaseModel):
+    plan: dict
+
+@app.post("/api/servers/{server_name}/apply_updates")
+def apply_updates(server_name: str, req: ApplyUpdatesReq):
+    server_dir = os.path.join(SERVERS_DIR, server_name)
+    mods_dir = os.path.join(server_dir, "mods")
+    
+    plan = req.plan
+    
+    # Delete incompatible/deleted
+    for item in plan.get("deleted", []):
+        fn = item.get("filename")
+        if fn:
+            p = os.path.join(mods_dir, fn)
+            if os.path.exists(p):
+                os.remove(p)
+                
+    # Delete old jars for updated mods
+    for item in plan.get("ready", []) + plan.get("chain", []):
+        old_fn = item.get("old_filename")
+        if old_fn:
+            p = os.path.join(mods_dir, old_fn)
+            if os.path.exists(p):
+                os.remove(p)
+                
+    # Download new jars
+    import urllib.request
+    for item in plan.get("ready", []) + plan.get("chain", []):
+        url = item.get("url")
+        fn = item.get("filename")
+        if url and fn:
+            p = os.path.join(mods_dir, fn)
+            try:
+                urllib.request.urlretrieve(url, p)
+            except Exception as e:
+                print(f"Failed to download {fn}: {e}")
+                
+    # Regenerate manifest
+    generate_manifest(server_name)
+    return {"success": True}
 
 @app.get("/", response_class=HTMLResponse)
 def root(request: Request):

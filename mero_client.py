@@ -216,16 +216,19 @@ class MeroWizard(ctk.CTk):
         self.configure(fg_color=DARKER_CHARCOAL)
         self.resizable(False, False)
 
-        self.payload = None
-        self.manifest = None
+        self.payload = {}
+        self.manifest = {}
         self.selected_instance_path = None
         self.current_tunnel = None
         self.mode = None  # "use" or "create"
         self.disabled_mods = []
+        self.sync_rp_var = ctk.BooleanVar(value=True)
+        self.sync_sp_var = ctk.BooleanVar(value=True)
         
         self.config_path = os.path.join(os.path.expanduser("~"), ".mero_client_cfg.json")
         self.servers = []
         self.current_server_id = None
+        self.sandbox_mode = False
         if os.path.exists(self.config_path):
             try:
                 with open(self.config_path, "r") as f:
@@ -235,6 +238,8 @@ class MeroWizard(ctk.CTk):
                     elif "invite_code" in data:
                         # Migrate old config
                         pass
+                    self.sandbox_mode = data.get("sandbox_mode", False)
+                    self.developer_mode = data.get("developer_mode", False)
             except Exception:
                 pass
 
@@ -260,7 +265,7 @@ class MeroWizard(ctk.CTk):
     def save_config(self):
         try:
             with open(self.config_path, "w") as f:
-                json.dump({"servers": self.servers}, f, indent=2)
+                json.dump({"servers": self.servers, "sandbox_mode": getattr(self, "sandbox_mode", False), "developer_mode": getattr(self, "developer_mode", False)}, f, indent=2)
         except Exception as e:
             print(f"[Mero] Failed to save config: {e}")
 
@@ -333,6 +338,121 @@ class MeroWizard(ctk.CTk):
         else:
             btn.configure(text=f"~~{current_text}~~", text_color="gray")
 
+    # --- Settings Menu ---
+    def show_state_settings(self):
+        self.clear_container()
+
+        ctk.CTkLabel(
+            self.main_container,
+            text="⚙ CLIENT SETTINGS",
+            font=get_font("heading", 24, "bold"),
+            text_color=NEON_GREEN,
+        ).pack(pady=(10, 40))
+
+        frame = ctk.CTkFrame(
+            self.main_container, fg_color=CHARCOAL, border_color=NEON_GREEN, border_width=1
+        )
+        frame.pack(fill="x", padx=40, pady=10)
+
+        # Sandbox Mode
+        row = ctk.CTkFrame(frame, fg_color="transparent")
+        row.pack(fill="x", padx=20, pady=20)
+
+        sandbox_var = ctk.BooleanVar(value=self.sandbox_mode)
+        cb = ctk.CTkCheckBox(
+            row,
+            text="Enable Sandbox Mode",
+            variable=sandbox_var,
+            border_color=NEON_GREEN,
+            checkmark_color=NEON_GREEN,
+            font=get_font("body", 14),
+            command=lambda: setattr(self, 'sandbox_mode', sandbox_var.get())
+        )
+        cb.pack(side="left")
+
+        def show_info():
+            messagebox.showinfo("Sandbox Mode", "Toggles the use of unverified/custom mods.")
+
+        info_btn = ctk.CTkButton(
+            row,
+            text="[ i ]",
+            width=30,
+            fg_color="transparent",
+            text_color=NEON_GREEN,
+            hover_color="#555555",
+            command=show_info
+        )
+        info_btn.pack(side="left", padx=10)
+
+        # Developer Mode
+        row2 = ctk.CTkFrame(frame, fg_color="transparent")
+        row2.pack(fill="x", padx=20, pady=(0, 20))
+
+        dev_var = ctk.BooleanVar(value=getattr(self, "developer_mode", False))
+        cb_dev = ctk.CTkCheckBox(
+            row2,
+            text="Enable Developer Mode",
+            variable=dev_var,
+            border_color=NEON_GREEN,
+            checkmark_color=NEON_GREEN,
+            font=get_font("body", 14),
+            command=lambda: setattr(self, 'developer_mode', dev_var.get())
+        )
+        cb_dev.pack(side="left")
+
+        def show_dev_info():
+            messagebox.showinfo("Developer Mode", "Enables advanced features like View Manifest and View Changes in the server sync screen.")
+
+        info_btn_dev = ctk.CTkButton(
+            row2,
+            text="[ i ]",
+            width=30,
+            fg_color="transparent",
+            text_color=NEON_GREEN,
+            hover_color="#555555",
+            command=show_dev_info
+        )
+        info_btn_dev.pack(side="left", padx=10)
+
+        btn_frame = ctk.CTkFrame(self.main_container, fg_color="transparent")
+        btn_frame.pack(side="bottom", pady=40)
+
+        def save_and_back():
+            self.save_config()
+            self.show_state_menu()
+
+        ctk.CTkButton(
+            btn_frame,
+            text="< BACK",
+            width=100,
+            height=40,
+            fg_color="transparent",
+            border_color=NEON_GREEN,
+            border_width=1,
+            text_color=TEXT_COLOR,
+            hover_color=CHARCOAL,
+            command=save_and_back,
+        ).pack(side="left", padx=10)
+
+    def _verify_mod_security(self, mod_list):
+        unverified = []
+        for m in mod_list:
+            url = m.get("url", m.get("download_url", ""))
+            if not url.startswith("https://cdn.modrinth.com/") and not url.startswith("https://edge.forgecdn.net/"):
+                unverified.append(m)
+                continue
+            if url.startswith("https://cdn.modrinth.com/"):
+                m_hash = m.get("hash")
+                if m_hash:
+                    try:
+                        import requests
+                        r = requests.get(f"https://api.modrinth.com/v2/version_file/{m_hash}?algorithm=sha256", timeout=5)
+                        if r.status_code != 200:
+                            unverified.append(m)
+                    except Exception:
+                        unverified.append(m)
+        return unverified
+
     # --- State -1: Home Menu ---
     def show_state_menu(self):
         self.clear_container()
@@ -353,6 +473,15 @@ class MeroWizard(ctk.CTk):
         # Top Bar Buttons
         btn_frame = ctk.CTkFrame(top_frame, fg_color="transparent")
         btn_frame.pack(side="right")
+
+        ctk.CTkButton(
+            btn_frame,
+            text="⚙ Settings",
+            width=80,
+            fg_color=CHARCOAL,
+            hover_color="#555555",
+            command=self.show_state_settings,
+        ).pack(side="left", padx=5)
 
         ctk.CTkButton(
             btn_frame,
@@ -429,10 +558,6 @@ class MeroWizard(ctk.CTk):
         )
         edit_btn.pack(side="right", padx=(10, 0))
 
-        status_text = server_info.get("status", "Checking...").capitalize()
-        status_color = ERROR_RED if status_text == "Offline" else (NEON_GREEN if status_text in ("Running", "Online") else "orange")
-        if status_text == "Running": status_text = "Online"
-
         update_needed = server_info.get("update_needed", False)
         if update_needed:
             notif = ctk.CTkLabel(
@@ -444,13 +569,6 @@ class MeroWizard(ctk.CTk):
                 corner_radius=15,
             )
             notif.pack(side="right")
-        else:
-            ctk.CTkLabel(
-                top_row,
-                text=status_text,
-                font=get_font("body", 12),
-                text_color=status_color,
-            ).pack(side="right")
 
         bottom_row = ctk.CTkFrame(card, fg_color="transparent")
         bottom_row.pack(fill="x", padx=15, pady=(0, 10))
@@ -499,11 +617,11 @@ class MeroWizard(ctk.CTk):
     def on_server_click(self, server_info):
         self.current_server_id = server_info.get("id")
         if server_info.get("update_needed"):
-            self.show_state_0_auth(is_update=True)
+            self.download_update_manifest(server_info)
         else:
             # Quick Launch
-            self.payload = server_info.get("payload")
-            self.manifest = server_info.get("manifest")
+            self.payload = server_info.get("payload") or {}
+            self.manifest = server_info.get("manifest") or {}
             
             # Auto-update the server name if it was missing before but manifest has it now
             if server_info.get("name") == "Mero Server" and self.manifest and self.manifest.get("name"):
@@ -516,6 +634,50 @@ class MeroWizard(ctk.CTk):
             else:
                 self.mode = "use"
                 self.show_state_3_execution()
+
+    def download_update_manifest(self, server_info):
+        self.clear_container()
+        
+        lbl = ctk.CTkLabel(
+            self.main_container,
+            text="Downloading Server Update...",
+            font=get_font("heading", 20, "bold"),
+            text_color="yellow"
+        )
+        lbl.pack(expand=True)
+
+        def worker():
+            m_url = server_info.get("manifest_url")
+            if m_url:
+                if "mero-host" in m_url:
+                    host_api_ip = server_info.get("payload", {}).get("ip", "127.0.0.1")
+                    m_url = m_url.replace("mero-host", host_api_ip)
+                try:
+                    import requests
+                    r = requests.get(m_url, timeout=15)
+                    if r.status_code == 200:
+                        server_info["old_manifest"] = server_info.get("manifest", {})
+                        self.manifest = r.json() or {}
+                        server_info["manifest"] = self.manifest
+                        server_info["update_needed"] = False
+                        self.save_config()
+                except Exception as e:
+                    print(f"Failed to download update manifest: {e}")
+            
+            self.payload = server_info.get("payload", {})
+            if getattr(self, "manifest", None) is None:
+                self.manifest = server_info.get("manifest", {})
+            self.selected_instance_path = server_info.get("instance_path")
+            self.mode = "use"
+            
+            # Use after() to switch back to UI thread
+            if not self.selected_instance_path or not os.path.exists(self.selected_instance_path):
+                self.after(0, self.show_state_2_selection)
+            else:
+                self.after(0, self.show_state_3_execution)
+
+        import threading
+        threading.Thread(target=worker, daemon=True).start()
 
     def show_state_edit(self, server_info):
         self.clear_container()
@@ -592,21 +754,40 @@ class MeroWizard(ctk.CTk):
             new_code = code_entry.get().strip()
             if new_code and new_code != server_info.get("invite_code"):
                 server_info["invite_code"] = new_code
-                try:
-                    b64_str = new_code.split("MERO-")[1]
-                    decoded_str = base64.b64decode(b64_str).decode()
-                    if decoded_str.startswith("http"):
-                        import requests
-                        r = requests.get(decoded_str, timeout=5)
-                        if r.status_code == 200:
-                            payload = r.json()
-                            payload["signal_bucket"] = decoded_str
-                            server_info["payload"] = payload
-                    else:
-                        server_info["payload"] = json.loads(decoded_str)
-                    server_info["update_needed"] = True
-                except:
-                    pass
+
+                def save_worker():
+                    try:
+                        b64_str = new_code.split("MERO-")[1]
+                        decoded_str = base64.b64decode(b64_str).decode()
+                        parts = decoded_str.split("|")
+                        sig_url = parts[0]
+                        enc_key = parts[1] if len(parts) > 1 else None
+                        
+                        if sig_url.startswith("http"):
+                            import requests
+                            r = requests.get(sig_url, timeout=10)
+                            if r.status_code == 200:
+                                data = r.json() or {}
+                                if "e" in data and enc_key:
+                                    decrypted = self._decrypt_signal_data(data, enc_key)
+                                    if decrypted:
+                                        decrypted["signal_bucket"] = sig_url
+                                        server_info["payload"] = decrypted
+                                else:
+                                    data["signal_bucket"] = sig_url
+                                    server_info["payload"] = data
+                        elif not enc_key:
+                            server_info["payload"] = json.loads(decoded_str)
+                        server_info["update_needed"] = True
+                    except Exception:
+                        pass
+                    
+                    self.after(0, self.save_config)
+                    self.after(0, self.show_state_menu)
+
+                import threading
+                threading.Thread(target=save_worker, daemon=True).start()
+                return
 
             self.save_config()
             self.show_state_menu()
@@ -652,6 +833,37 @@ class MeroWizard(ctk.CTk):
             command=do_save,
         ).pack(side="left", padx=10)
 
+    def _decrypt_signal_data(self, sig_data, enc_key):
+        """Decrypt the encrypted signal bucket payload using the stored enc_key."""
+        import hashlib
+        try:
+            enc_hex = sig_data.get("e")
+            if not enc_hex or not enc_key:
+                return None
+            enc_data = bytes.fromhex(enc_hex)
+            stream = b""
+            i = 0
+            while len(stream) < len(enc_data):
+                stream += hashlib.sha256((enc_key + str(i)).encode()).digest()
+                i += 1
+            dec_data = bytes(a ^ b for a, b in zip(enc_data, stream))
+            return json.loads(dec_data.decode('utf-8'))
+        except Exception as e:
+            print(f"[Mero] Signal decryption failed: {e}")
+            return None
+
+    def _get_enc_key_from_invite(self, invite_code):
+        """Extract the encryption key from a MERO- invite code."""
+        try:
+            if not invite_code or not invite_code.startswith("MERO-"):
+                return None
+            b64_str = invite_code.split("MERO-")[1]
+            decoded_str = base64.b64decode(b64_str).decode()
+            parts = decoded_str.split("|")
+            return parts[1] if len(parts) > 1 else None
+        except Exception:
+            return None
+
     def refresh_servers(self):
         def ping_worker():
             for s in self.servers:
@@ -670,12 +882,30 @@ class MeroWizard(ctk.CTk):
                         r = requests.get(signal_bucket, timeout=5)
                         if r.status_code == 200:
                             sig_data = r.json()
-                            payload["ip"] = sig_data.get("ip")
-                            payload["udp_port"] = sig_data.get("udp_port")
-                            if sig_data.get("status") == "offline":
+                            if sig_data and sig_data.get("status") == "offline":
                                 s["status"] = "Offline"
                                 s["update_needed"] = False
                                 continue
+                            # Signal bucket contains encrypted data - decrypt it
+                            if sig_data and "e" in sig_data:
+                                enc_key = self._get_enc_key_from_invite(s.get("invite_code"))
+                                decrypted = self._decrypt_signal_data(sig_data, enc_key)
+                                if decrypted:
+                                    payload["ip"] = decrypted.get("ip") or payload.get("ip")
+                                    payload["udp_port"] = decrypted.get("udp_port") or payload.get("udp_port")
+                                    payload["mc_port"] = decrypted.get("mc_port") or payload.get("mc_port")
+                                    if decrypted.get("manifest_url"):
+                                        payload["manifest_url"] = decrypted["manifest_url"]
+                                    if decrypted.get("status") == "offline":
+                                        s["status"] = "Offline"
+                                        s["update_needed"] = False
+                                        continue
+                            elif sig_data:
+                                # Unencrypted signal data (legacy)
+                                if sig_data.get("ip"):
+                                    payload["ip"] = sig_data["ip"]
+                                if sig_data.get("udp_port"):
+                                    payload["udp_port"] = sig_data["udp_port"]
                     except Exception as e:
                         print(f"Failed to fetch signal for {s.get('name')}: {e}")
 
@@ -792,75 +1022,94 @@ class MeroWizard(ctk.CTk):
             return
         
         self.validated_invite_code = code
+        self.auth_error_lbl.configure(text="Connecting to Uplink... Please wait.", text_color="yellow")
 
-        try:
-            import requests, hashlib
-            b64_str = code.split("MERO-")[1]
-            decoded_str = base64.b64decode(b64_str).decode()
-            
-            parts = decoded_str.split("|")
-            sig_url = parts[0]
-            enc_key = parts[1] if len(parts) > 1 else None
-            enc_hex = parts[2] if len(parts) > 2 else None
+        def worker():
+            try:
+                import requests, hashlib
+                b64_str = code.split("MERO-")[1]
+                decoded_str = base64.b64decode(b64_str).decode()
+                
+                parts = decoded_str.split("|")
+                sig_url = parts[0]
+                enc_key = parts[1] if len(parts) > 1 else None
+                enc_hex = parts[2] if len(parts) > 2 else None
 
-            if sig_url.startswith("http"):
-                r = requests.get(sig_url, timeout=10)
-                if r.status_code == 200:
-                    data = r.json()
-                    if "e" in data and enc_key:
-                        enc_hex = data["e"]
+                if sig_url.startswith("http"):
+                    r = requests.get(sig_url, timeout=10)
+                    if r.status_code == 200:
+                        data = r.json()
+                        if data is None:
+                            data = {}
+                        if "e" in data and enc_key:
+                            enc_hex = data["e"]
+                        else:
+                            self.payload = data
+                        if getattr(self, "payload", None) is None: 
+                            self.payload = {}
+                        self.payload["signal_bucket"] = sig_url
                     else:
-                        self.payload = data
-                    if self.payload is None: 
-                        self.payload = {}
-                    self.payload["signal_bucket"] = sig_url
-                else:
-                    self.auth_error_lbl.configure(text="Failed to resolve Invite Code")
-                    return
-            elif not enc_hex and not enc_key:
-                self.payload = json.loads(decoded_str)
+                        self.after(0, lambda: self.auth_error_lbl.configure(text="Failed to resolve Invite Code", text_color=ERROR_RED))
+                        return
+                elif not enc_hex and not enc_key:
+                    self.payload = json.loads(decoded_str)
 
-            if enc_hex and enc_key:
-                enc_data = bytes.fromhex(enc_hex)
-                stream = b""
-                i = 0
-                while len(stream) < len(enc_data):
-                    stream += hashlib.sha256((enc_key + str(i)).encode()).digest()
-                    i += 1
-                dec_data = bytes(a ^ b for a, b in zip(enc_data, stream))
-                parsed = json.loads(dec_data.decode('utf-8'))
-                if hasattr(self, "payload") and "signal_bucket" in self.payload:
-                    parsed["signal_bucket"] = self.payload["signal_bucket"]
-                self.payload = parsed
-            m_url = self.payload.get("manifest_url")
+                if enc_hex and enc_key:
+                    enc_data = bytes.fromhex(enc_hex)
+                    stream = b""
+                    i = 0
+                    while len(stream) < len(enc_data):
+                        stream += hashlib.sha256((enc_key + str(i)).encode()).digest()
+                        i += 1
+                    dec_data = bytes(a ^ b for a, b in zip(enc_data, stream))
+                    parsed = json.loads(dec_data.decode('utf-8'))
+                    if parsed is None:
+                        parsed = {}
+                    if hasattr(self, "payload") and self.payload and "signal_bucket" in self.payload:
+                        parsed["signal_bucket"] = self.payload["signal_bucket"]
+                    self.payload = parsed
+                
+                if getattr(self, "payload", None) is None:
+                    self.payload = {}
+                m_url = self.payload.get("manifest_url")
 
-            if m_url:
-                r = requests.get(m_url, timeout=10)
-                if r.status_code == 200:
-                    self.manifest = r.json()
+                self.manifest = {}
+                if m_url:
+                    self.after(0, lambda: self.auth_error_lbl.configure(text="Downloading manifest... Please wait.", text_color="yellow"))
+                    try:
+                        r = requests.get(m_url, timeout=15)
+                        if r.status_code == 200:
+                            self.manifest = r.json() or {}
+                    except Exception:
+                        pass
 
-            # We will save the server to config AFTER instance selection (in start_sync)
-            self.mode = "use"
-            if self.current_server_id:
-                # Update flow: we already know the instance path, jump to execution
-                server = next((s for s in self.servers if s["id"] == self.current_server_id), None)
-                if server:
-                    server["invite_code"] = code
-                    server["payload"] = self.payload
-                    server["manifest"] = self.manifest
-                    server["manifest_url"] = m_url
-                    server["update_needed"] = False
-                    self.selected_instance_path = server.get("instance_path")
-                    self.save_config()
-                    self.show_state_3_execution()
-                    return
-                    
-            self.show_state_2_selection()
-        except Exception as e:
-            self.auth_error_lbl.configure(text=f"Validation Failed: {str(e)[:30]}")
+                def on_success():
+                    self.mode = "use"
+                    if self.current_server_id:
+                        server = next((s for s in self.servers if s["id"] == self.current_server_id), None)
+                        if server:
+                            server["invite_code"] = code
+                            server["payload"] = self.payload
+                            server["manifest"] = self.manifest
+                            server["manifest_url"] = m_url
+                            server["update_needed"] = False
+                            self.selected_instance_path = server.get("instance_path")
+                            self.save_config()
+                            self.show_state_3_execution()
+                            return
+                            
+                    self.show_state_2_selection()
+
+                self.after(0, on_success)
+            except Exception as e:
+                self.after(0, lambda: self.auth_error_lbl.configure(text=f"Validation Failed: {str(e)[:30]}", text_color=ERROR_RED))
+
+        import threading
+        threading.Thread(target=worker, daemon=True).start()
 
     def show_state_2_selection(self):
         self.clear_container()
+        self.manifest = self.manifest or {}
 
         # 1. Server Brief Header
         brief_frame = ctk.CTkFrame(
@@ -871,11 +1120,11 @@ class MeroWizard(ctk.CTk):
         )
         brief_frame.pack(fill="x", pady=(0, 20))
 
-        mc_ver = self.manifest.get("minecraft_version", "Unknown")
-        loader = self.manifest.get("loader_type", "Vanilla").capitalize()
-        mods_count = len(self.manifest.get("mods", []))
-        rp_count = len(self.manifest.get("resourcepacks", []))
-        sp_count = len(self.manifest.get("shaderpacks", []))
+        mc_ver = self.manifest.get("minecraft_version") or "Unknown"
+        loader = (self.manifest.get("loader_type") or "Vanilla").capitalize()
+        mods_count = len(self.manifest.get("mods") or [])
+        rp_count = len(self.manifest.get("resourcepacks") or [])
+        sp_count = len(self.manifest.get("shaderpacks") or [])
 
         header_text = f"PLATFORM: {loader} | VERSION: {mc_ver}\nSTATS: {mods_count} Mods, {rp_count} Resources, {sp_count} Shaders"
         ctk.CTkLabel(
@@ -933,6 +1182,43 @@ class MeroWizard(ctk.CTk):
             )
             btn.configure(command=lambda b=btn: self.toggle_step(b))
             btn.pack(fill="x", pady=2)
+
+        if getattr(self, "developer_mode", False):
+            dev_frame = ctk.CTkFrame(self.main_container, fg_color="transparent")
+            dev_frame.pack(fill="x", pady=10)
+            
+            ctk.CTkButton(
+                dev_frame,
+                text="View Manifest",
+                width=120,
+                fg_color=CHARCOAL,
+                border_color=NEON_GREEN,
+                border_width=1,
+                hover_color="#555555",
+                command=self.show_dev_manifest
+            ).pack(side="left", padx=5)
+            
+            # compute diff stats
+            old_m = {}
+            if self.current_server_id:
+                server = next((s for s in self.servers if s["id"] == self.current_server_id), None)
+                if server:
+                    old_m = server.get("old_manifest", {})
+            
+            # We'll implement _compute_manifest_diff shortly
+            added, removed, updated = self._compute_manifest_diff(old_m, self.manifest)
+            diff_text = f"View Changes (-{removed}, ~{updated}, +{added})"
+            
+            ctk.CTkButton(
+                dev_frame,
+                text=diff_text,
+                width=160,
+                fg_color=CHARCOAL,
+                border_color=NEON_GREEN,
+                border_width=1,
+                hover_color="#555555",
+                command=lambda: self.show_dev_changes(old_m, self.manifest)
+            ).pack(side="left", padx=5)
 
         # 4. Path & Action
         path_frame = ctk.CTkFrame(self.main_container, fg_color="transparent")
@@ -1125,13 +1411,17 @@ class MeroWizard(ctk.CTk):
 
     def execution_worker(self):
         try:
+            self.manifest = self.manifest or {}
+            self.payload = self.payload or {}
             path = self.selected_instance_path
 
-            loader_type = (
-                self.manifest.get("loader_type", "vanilla").lower()
-                if self.manifest
-                else "vanilla"
-            )
+            # Ensure sync vars exist (Quick Launch path may skip state 2)
+            if not hasattr(self, 'sync_rp_var') or self.sync_rp_var is None:
+                self.sync_rp_var = ctk.BooleanVar(value=True)
+            if not hasattr(self, 'sync_sp_var') or self.sync_sp_var is None:
+                self.sync_sp_var = ctk.BooleanVar(value=True)
+
+            loader_type = self.manifest.get("loader_type", "vanilla").lower()
             self.loader_type = loader_type
             is_modded = loader_type in ["fabric", "forge", "quilt"]
 
@@ -1173,11 +1463,7 @@ class MeroWizard(ctk.CTk):
                             except Exception as e:
                                 print(f"[Mero Wizard] Failed to disable client AutoModpack: {e}")
 
-            mc_ver = (
-                self.manifest.get("minecraft_version", "1.21")
-                if self.manifest
-                else "1.21"
-            )
+            mc_ver = self.manifest.get("minecraft_version") or "1.21"
             if self.mode == "create":
                 max_retries = 3
                 for attempt in range(max_retries):
@@ -1203,7 +1489,7 @@ class MeroWizard(ctk.CTk):
                         else:
                             raise e
 
-                loader_ver = self.manifest.get("loader_version")
+                loader_ver = self.manifest.get("loader_version") or "latest"
                 if loader_type == "fabric" and loader_ver:
                     self.update_exec("Injecting Fabric Loader...")
                     minecraft_launcher_lib.fabric.install_fabric(
@@ -1243,6 +1529,9 @@ class MeroWizard(ctk.CTk):
                     m_url = data.get("url")
                     if not m_url:
                         return
+                    if "mero-host" in m_url:
+                        host_api_ip = self.payload.get("ip", "127.0.0.1")
+                        m_url = m_url.replace("mero-host", host_api_ip)
 
                     try:
                         dest = os.path.join(vault_dest, m_name)
@@ -1282,6 +1571,46 @@ class MeroWizard(ctk.CTk):
                     print(f"[Mero Wizard] AutoModpack filtered from manifest download: {m}")
                     continue
                 filtered_mods.append(m)
+            # Security Check
+            if is_modded and filtered_mods:
+                self.update_exec("Verifying Mod Security...", 0.45)
+                unverified_mods = self._verify_mod_security(filtered_mods)
+                
+                if unverified_mods:
+                    if not getattr(self, 'sandbox_mode', False):
+                        self.update_exec("SECURITY BLOCK: Unverified mods detected. Sandbox Mode is OFF.", 0)
+                        time.sleep(2)
+                        self.cancel_sync_flag = True
+                        return
+                    else:
+                        self.update_exec("Sandbox Mode: Waiting for authorization...", 0.45)
+                        auth_event = threading.Event()
+                        user_decision = {"proceed": False}
+                        
+                        def prompt_user():
+                            ans = messagebox.askyesno(
+                                "Sandbox Mode Warning",
+                                "⚠️ Sandbox Mode: This server contains unverified/custom mods. Only continue if you completely trust the host.\n\nProceed?"
+                            )
+                            if ans:
+                                ans2 = messagebox.askyesno(
+                                    "FINAL WARNING",
+                                    "🚨 FINAL WARNING: You are authorizing unverified code to run on your PC. Mero is not responsible for malware or damages.\n\nDo you ACCEPT the risks?"
+                                )
+                                if ans2:
+                                    user_decision["proceed"] = True
+                            auth_event.set()
+                            
+                        self.after(0, prompt_user)
+                        auth_event.wait()
+                        
+                        if not user_decision["proceed"]:
+                            self.update_exec("Uplink Aborted by User.", 0)
+                            time.sleep(1)
+                            self.cancel_sync_flag = True
+                            return
+                        self.update_exec("Sandbox Auth Granted. Proceeding...", 0.48)
+
             # For Fabric/Quilt: keep mods in vault only, load via JVM args
             skip_mod_links = False
             download_swarm(filtered_mods, v_mods, "mods", 0.5, 0.2, "Mod", create_link=not skip_mod_links)
@@ -1330,6 +1659,9 @@ class MeroWizard(ctk.CTk):
                 except Exception:
                     pass
 
+            if not ip or udp_port is None:
+                raise ValueError("Server NAT Traversal IP or port is not resolved yet. Make sure the server is fully started and online!")
+
             if self.current_tunnel:
                 self.current_tunnel.stop()
             self.current_tunnel = MeroTunnel(ip, udp_port)
@@ -1338,12 +1670,12 @@ class MeroWizard(ctk.CTk):
             # Save server config if it's new
             if not self.current_server_id:
                 server_id = base64.b64encode(os.urandom(8)).decode()
-                server_name = self.manifest.get("name", "Mero Server") if self.manifest else "Mero Server"
+                server_name = self.manifest.get("name") or "Mero Server"
                 self.servers.append({
                     "id": server_id,
                     "name": server_name,
-                    "version": self.manifest.get("minecraft_version", "1.20"),
-                    "platform": self.manifest.get("loader_type", "Vanilla"),
+                    "version": self.manifest.get("minecraft_version") or "1.20",
+                    "platform": self.manifest.get("loader_type") or "Vanilla",
                     "invite_code": getattr(self, "validated_invite_code", ""),
                     "instance_path": self.selected_instance_path,
                     "manifest_url": self.payload.get("manifest_url", ""),
@@ -1580,6 +1912,205 @@ class MeroWizard(ctk.CTk):
                 pass
                 
         super().destroy()
+
+
+
+    def _compute_manifest_diff(self, old_m, new_m):
+        if not old_m:
+            total_added = len(new_m.get("mods", [])) + len(new_m.get("resourcepacks", [])) + len(new_m.get("shaderpacks", []))
+            return total_added, 0, 0
+            
+        added, removed, updated = 0, 0, 0
+        
+        for category in ["mods", "resourcepacks", "shaderpacks"]:
+            old_items = {i.get("filename", ""): i for i in old_m.get(category, [])}
+            new_items = {i.get("filename", ""): i for i in new_m.get(category, [])}
+            
+            old_set = set(old_items.keys())
+            new_set = set(new_items.keys())
+            
+            exact_added = new_set - old_set
+            exact_removed = old_set - new_set
+            
+            def get_base(name):
+                return name.split("-")[0].lower() if "-" in name else name.lower()
+                
+            old_bases = {get_base(k): k for k in exact_removed}
+            new_bases = {get_base(k): k for k in exact_added}
+            
+            for b in list(old_bases.keys()):
+                if b in new_bases:
+                    updated += 1
+                    exact_removed.remove(old_bases[b])
+                    exact_added.remove(new_bases[b])
+                    
+            added += len(exact_added)
+            removed += len(exact_removed)
+            
+        return added, removed, updated
+
+    def show_dev_manifest(self):
+        top = ctk.CTkToplevel(self)
+        top.title("View Manifest")
+        top.geometry("700x500")
+        top.configure(fg_color=DARKER_CHARCOAL)
+        
+        ctk.CTkLabel(top, text="STRUCTURED MANIFEST VIEWER", font=get_font("heading", 20, "bold"), text_color=NEON_GREEN).pack(pady=10)
+        
+        sf = ctk.CTkScrollableFrame(top, fg_color="transparent")
+        sf.pack(fill="both", expand=True, padx=20, pady=10)
+        
+        for category in ["mods", "resourcepacks", "shaderpacks"]:
+            items = self.manifest.get(category, [])
+            if items:
+                ctk.CTkLabel(sf, text=category.upper(), font=get_font("heading", 16, "bold"), text_color="white").pack(anchor="w", pady=(10, 5))
+                for item in items:
+                    fn = item.get("filename", "Unknown")
+                    url = item.get("url", "No URL")
+                    
+                    frame = ctk.CTkFrame(sf, fg_color=CHARCOAL)
+                    frame.pack(fill="x", pady=2)
+                    ctk.CTkLabel(frame, text=fn, font=get_font("body", 12, "bold"), text_color=NEON_GREEN).pack(side="left", padx=10)
+                    
+                    url_entry = ctk.CTkEntry(frame, height=24, fg_color="black", text_color="gray", border_width=0)
+                    url_entry.pack(side="right", fill="x", expand=True, padx=10, pady=5)
+                    url_entry.insert(0, url)
+                    url_entry.configure(state="readonly")
+
+    def show_dev_changes(self, old_m, new_m):
+        top = ctk.CTkToplevel(self)
+        top.title("View Changes")
+        top.geometry("900x600")
+        top.configure(fg_color=DARKER_CHARCOAL)
+        
+        header = ctk.CTkFrame(top, fg_color="transparent")
+        header.pack(fill="x", padx=20, pady=10)
+        
+        ctk.CTkLabel(header, text="SERVER CHANGES", font=get_font("heading", 20, "bold"), text_color=NEON_GREEN).pack(side="left")
+        
+        def copy_changelog():
+            cl = "### Server Update Changelog\n"
+            added, removed, updated = self._compute_manifest_diff(old_m, new_m)
+            cl += f"**{added} Added, {removed} Removed, {updated} Updated**\n\n"
+            
+            for category in ["mods", "resourcepacks", "shaderpacks"]:
+                old_items = {i.get("filename", ""): i for i in old_m.get(category, [])}
+                new_items = {i.get("filename", ""): i for i in new_m.get(category, [])}
+                
+                old_set = set(old_items.keys())
+                new_set = set(new_items.keys())
+                
+                exact_added = new_set - old_set
+                exact_removed = old_set - new_set
+                
+                def get_base(name):
+                    return name.split("-")[0].lower() if "-" in name else name.lower()
+                    
+                old_bases = {get_base(k): k for k in exact_removed}
+                new_bases = {get_base(k): k for k in exact_added}
+                
+                up_list = []
+                for b in list(old_bases.keys()):
+                    if b in new_bases:
+                        up_list.append((old_bases[b], new_bases[b]))
+                        exact_removed.remove(old_bases[b])
+                        exact_added.remove(new_bases[b])
+                        
+                if exact_added or exact_removed or up_list:
+                    cl += f"**{category.capitalize()}**:\n"
+                    for o, n in up_list:
+                        cl += f"- 🔄 `{o}` ➔ `{n}`\n"
+                    for a in exact_added:
+                        cl += f"- ➕ `{a}`\n"
+                    for r in exact_removed:
+                        cl += f"- ➖ `{r}`\n"
+                    cl += "\n"
+            top.clipboard_clear()
+            top.clipboard_append(cl)
+            messagebox.showinfo("Copied", "Changelog copied to clipboard!")
+            
+        ctk.CTkButton(header, text="Copy Changelog", fg_color=NEON_GREEN, text_color="black", hover_color="#2ECC71", command=copy_changelog).pack(side="right")
+        
+        search_var = ctk.StringVar()
+        search_entry = ctk.CTkEntry(header, placeholder_text="Search mods...", textvariable=search_var, width=200, fg_color=CHARCOAL, border_color=NEON_GREEN)
+        search_entry.pack(side="right", padx=10)
+        
+        # Diff Logic computation
+        old_mods = {i.get("filename", ""): i for i in old_m.get("mods", [])}
+        new_mods = {i.get("filename", ""): i for i in new_m.get("mods", [])}
+        exact_added = list(set(new_mods.keys()) - set(old_mods.keys()))
+        exact_removed = list(set(old_mods.keys()) - set(new_mods.keys()))
+        
+        def get_base(name):
+            return name.split("-")[0].lower() if "-" in name else name.lower()
+            
+        old_bases = {get_base(k): k for k in exact_removed}
+        new_bases = {get_base(k): k for k in exact_added}
+        
+        up_list = []
+        for b in list(old_bases.keys()):
+            if b in new_bases:
+                up_list.append((old_bases[b], new_bases[b]))
+                exact_removed.remove(old_bases[b])
+                exact_added.remove(new_bases[b])
+                
+        # Non-mod categories (RP/SP) drop down at the top
+        top_frame = ctk.CTkFrame(top, fg_color="transparent")
+        top_frame.pack(fill="x", padx=20, pady=5)
+        
+        rp_sp_text = []
+        for cat in ["resourcepacks", "shaderpacks"]:
+            o_items = {i.get("filename", "") for i in old_m.get(cat, [])}
+            n_items = {i.get("filename", "") for i in new_m.get(cat, [])}
+            for a in (n_items - o_items): rp_sp_text.append(f"➕ {cat}: {a}")
+            for r in (o_items - n_items): rp_sp_text.append(f"➖ {cat}: {r}")
+            
+        if rp_sp_text:
+            rp_lbl = ctk.CTkLabel(top_frame, text="Resourcepacks & Shaderpacks Changed:\n" + "\n".join(rp_sp_text), justify="left", font=get_font("body", 12), text_color="white")
+            rp_lbl.pack(anchor="w")
+
+        # Split view
+        split_frame = ctk.CTkFrame(top, fg_color="transparent")
+        split_frame.pack(fill="both", expand=True, padx=20, pady=10)
+        
+        left_panel = ctk.CTkScrollableFrame(split_frame, fg_color=CHARCOAL, width=400)
+        left_panel.pack(side="left", fill="both", expand=True, padx=(0, 10))
+        
+        right_panel = ctk.CTkScrollableFrame(split_frame, fg_color=CHARCOAL, width=400)
+        right_panel.pack(side="right", fill="both", expand=True, padx=(10, 0))
+        
+        ctk.CTkLabel(left_panel, text="Removed Mods", font=get_font("heading", 16, "bold"), text_color=ERROR_RED).pack(pady=5)
+        ctk.CTkLabel(right_panel, text="Added Mods", font=get_font("heading", 16, "bold"), text_color=NEON_GREEN).pack(pady=5)
+        
+        left_inner = ctk.CTkFrame(left_panel, fg_color="transparent")
+        left_inner.pack(fill="both", expand=True)
+        right_inner = ctk.CTkFrame(right_panel, fg_color="transparent")
+        right_inner.pack(fill="both", expand=True)
+        
+        def render_diff(*args):
+            for w in left_inner.winfo_children() + right_inner.winfo_children():
+                w.destroy()
+                
+            q = search_var.get().lower()
+            
+            # Updated
+            for o, n in up_list:
+                if q in o.lower() or q in n.lower():
+                    ctk.CTkLabel(left_inner, text=f"~ {o}", text_color="orange", font=get_font("body", 12)).pack(anchor="w")
+                    ctk.CTkLabel(right_inner, text=f"~ {n}", text_color="yellow", font=get_font("body", 12)).pack(anchor="w")
+            
+            # Removed
+            for r in exact_removed:
+                if q in r.lower():
+                    ctk.CTkLabel(left_inner, text=f"- {r}", text_color=ERROR_RED, font=get_font("body", 12)).pack(anchor="w")
+            
+            # Added
+            for a in exact_added:
+                if q in a.lower():
+                    ctk.CTkLabel(right_inner, text=f"+ {a}", text_color=NEON_GREEN, font=get_font("body", 12)).pack(anchor="w")
+
+        search_var.trace("w", render_diff)
+        render_diff()
 
 
 def check_for_client_updates():

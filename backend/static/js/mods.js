@@ -296,14 +296,18 @@ async function installMod(id, type) {
     if (!r.ok) throw new Error("Failed to start install");
 
     const interval = setInterval(async () => {
-      const stat = await apiGet(
-        `/servers/${encodeURIComponent(currentServer)}/install_progress?project_id=${id}`,
-      );
+      let stat;
+      if (type === "modpack") {
+        stat = await apiGet(`/servers/${encodeURIComponent(currentServer)}/modpack_progress/${id}`);
+      } else {
+        stat = await apiGet(`/servers/${encodeURIComponent(currentServer)}/install_progress?project_id=${id}`);
+      }
+
       if (stat.status === "error") {
         clearInterval(interval);
         actionDiv.innerHTML = `<button class="btn danger small" disabled>Error</button>`;
         showToast("Installation failed.");
-      } else if (stat.status === "installed") {
+      } else if (stat.status === "installed" || stat.status === "done") {
         clearInterval(interval);
         actionDiv.innerHTML = `<button class="btn success small" disabled><i data-lucide="check" style="width:14px;height:14px;"></i> Installed</button>`;
         lucide.createIcons();
@@ -312,16 +316,27 @@ async function installMod(id, type) {
           `/servers/${encodeURIComponent(currentServer)}/installed_mods`,
         );
         installedModsCache = res.files || [];
-      } else if (stat.status === "downloading") {
+      } else if (stat.status === "downloading" || stat.status === "downloading_mods" || stat.status === "extracting") {
         const fill = document.getElementById(`prog-fill-${id}`);
         const text = document.getElementById(`prog-text-${id}`);
-        if (fill && text && stat.total > 0) {
-          const pct = (stat.downloaded / stat.total) * 100;
-          fill.style.width = pct + "%";
-          const mbDl = (stat.downloaded / 1048576).toFixed(1);
-          const mbTot = (stat.total / 1048576).toFixed(1);
-          text.innerText = `${mbDl} MB / ${mbTot} MB`;
+        if (fill && text) {
+          if (type === "modpack") {
+            const pct = stat.mods_total > 0 ? (stat.mods_done / stat.mods_total) * 100 : 100;
+            fill.style.width = pct + "%";
+            text.innerText = stat.stage_label || "Installing...";
+          } else if (stat.total > 0) {
+            const pct = (stat.downloaded / stat.total) * 100;
+            fill.style.width = pct + "%";
+            const mbDl = (stat.downloaded / 1048576).toFixed(1);
+            const mbTot = (stat.total / 1048576).toFixed(1);
+            text.innerText = `${mbDl} MB / ${mbTot} MB`;
+          } else {
+            text.innerText = "Installing...";
+          }
         }
+      } else if (stat.status === "none" || stat.status === "unknown") {
+        const text = document.getElementById(`prog-text-${id}`);
+        if (text) text.innerText = "Installing...";
       }
     }, 500);
   } catch (e) {

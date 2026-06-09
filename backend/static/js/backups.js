@@ -65,7 +65,7 @@ async function fetchBackups() {
                 <td style="padding: 10px; color: var(--muted);">${(b.size / (1024 * 1024)).toFixed(2)} MB</td>
                 <td style="padding: 10px; text-align: right; display:flex; gap:6px; justify-content:flex-end;">
                     <button class="btn success small" onclick="restoreBackup('${b.filename}')"><i data-lucide="rotate-ccw" style="width:14px;height:14px;"></i> Restore</button>
-                    <a class="btn primary small outline" href="${API}/servers/${encodeURIComponent(currentServer)}/backups/${encodeURIComponent(b.filename)}/download" download><i data-lucide="download" style="width:14px;height:14px;"></i></a>
+                    <button class="btn primary small outline" onclick="saveBackup('${b.filename}')"><i data-lucide="download" style="width:14px;height:14px;"></i></button>
                     <button class="btn danger small outline" onclick="deleteBackup('${b.filename}')"><i data-lucide="trash-2" style="width:14px;height:14px;"></i></button>
                 </td>
             `;
@@ -107,23 +107,23 @@ async function restoreBackup(filename) {
     );
     return;
   }
-  if (
-    !confirm(
-      `Are you sure you want to restore ${filename}? This will overwrite your current world.`,
-    )
-  )
-    return;
 
-  try {
-    const res = await apiPost(
-      `/servers/${encodeURIComponent(currentServer)}/backups/restore`,
-      { filename },
-    );
-    if (!res.ok) throw new Error(await res.text());
-    showToast("Backup restored successfully!");
-  } catch (e) {
-    alert("Failed to restore backup.");
-  }
+  showCustomConfirm(
+    "Restore Backup",
+    `Are you sure you want to use this backup (${filename})?\n\n<b>WARNING:</b> This will delete all your old server files and replace them with the files from this backup.`,
+    async () => {
+      try {
+        const res = await apiPost(
+          `/servers/${encodeURIComponent(currentServer)}/backups/restore`,
+          { filename },
+        );
+        if (!res.ok) throw new Error(await res.text());
+        showToast("Backup restored successfully!");
+      } catch (e) {
+        alert("Failed to restore backup.");
+      }
+    }
+  );
 }
 
 async function deleteBackup(filename) {
@@ -139,6 +139,20 @@ async function deleteBackup(filename) {
     fetchBackups();
   } catch (e) {
     alert("Failed to delete backup.");
+  }
+}
+
+async function saveBackup(filename) {
+  if (!currentServer) return;
+  try {
+    const res = await apiGet(
+      `/servers/${encodeURIComponent(currentServer)}/backups/${encodeURIComponent(filename)}/save`
+    );
+    if (res.message && res.message !== "Save cancelled") {
+      showToast(res.message);
+    }
+  } catch (e) {
+    alert("Failed to save backup: " + e.message);
   }
 }
 

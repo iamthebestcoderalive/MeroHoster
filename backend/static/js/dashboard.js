@@ -243,9 +243,52 @@ async function fetchStats() {
     const filesNav = document.getElementById("nav-files");
     const modsLock = document.getElementById("tab-lock-modrinth");
     const filesLock = document.getElementById("tab-lock-files");
-    if (modsNav) modsNav.dataset.locked = initialized ? "false" : "true";
+    if (modsNav) modsNav.dataset.locked = (currentPlatform === "vanilla" || !initialized) ? "true" : "false";
     if (filesNav) filesNav.dataset.locked = initialized ? "false" : "true";
-    if (modsLock) modsLock.style.display = initialized ? "none" : "flex";
+
+    if (modsLock) {
+      if (currentPlatform === "vanilla") {
+        modsLock.style.display = "flex";
+        const icon = modsLock.querySelector("[data-lucide], svg");
+        if (icon) {
+          const newIcon = document.createElement("i");
+          newIcon.setAttribute("data-lucide", "ban");
+          newIcon.style.width = "32px";
+          newIcon.style.height = "32px";
+          newIcon.style.color = "var(--error)";
+          newIcon.style.marginBottom = "12px";
+          icon.parentNode.replaceChild(newIcon, icon);
+        }
+        const title = modsLock.querySelector("h3");
+        if (title) title.innerText = "Mods & Plugins Disabled";
+        const desc = modsLock.querySelector("p");
+        if (desc) desc.innerText = "Vanilla servers do not support installing mods or plugins. Switch to Fabric, Forge, Paper, or Purpur in Settings to enable them.";
+        if (window.lucide) {
+          lucide.createIcons();
+        }
+      } else {
+        modsLock.style.display = initialized ? "none" : "flex";
+        const icon = modsLock.querySelector("[data-lucide], svg");
+        if (icon) {
+          if (icon.getAttribute("data-lucide") === "ban" || icon.classList.contains("lucide-ban")) {
+            const newIcon = document.createElement("i");
+            newIcon.setAttribute("data-lucide", "lock");
+            newIcon.style.width = "32px";
+            newIcon.style.height = "32px";
+            newIcon.style.color = "var(--warning)";
+            newIcon.style.marginBottom = "12px";
+            icon.parentNode.replaceChild(newIcon, icon);
+            const title = modsLock.querySelector("h3");
+            if (title) title.innerText = "First-Boot Required";
+            const desc = modsLock.querySelector("p");
+            if (desc) desc.innerText = "Please start the server for the first time to generate core folders before installing mods or plugins.";
+            if (window.lucide) {
+              lucide.createIcons();
+            }
+          }
+        }
+      }
+    }
     if (filesLock) filesLock.style.display = initialized ? "none" : "flex";
 
     // ─ Live chart update
@@ -302,6 +345,8 @@ async function fetchStats() {
     const tb = document.getElementById("tunnel-info-box");
     const lb = document.getElementById("local-ip-box");
     const setupBox = document.getElementById("playit-setup-box");
+    const pinggyBox = document.getElementById("pinggy-info-box");
+    const pinggyBtn = document.getElementById("btn-pinggy-start");
 
     // Update server icon — use dedicated icon endpoint, fallback to logo
     const iconEl = document.getElementById("dash-server-icon");
@@ -331,6 +376,24 @@ async function fetchStats() {
     const advPanel = document.getElementById("tunnel-advanced-panel");
     if (advPanel && isP2P) {
       advPanel.classList.remove("open");
+    }
+    const playitResetBtn = document.getElementById("playit-reset-btn");
+    if (playitResetBtn) {
+      playitResetBtn.style.display = isP2P ? "none" : "";
+    }
+
+    // Update Publish Manifest panel visibility
+    window.currentManifestSync = st.manifest_sync || "manual";
+    const devModpackPanel = document.getElementById("dev-modpack-panel");
+    const isVanilla = (st.platform || "vanilla").toLowerCase() === "vanilla";
+    const isAutoSync = window.currentManifestSync === "automatic";
+    if (devModpackPanel) {
+      const showPanel = !(isVanilla || isAutoSync);
+      devModpackPanel.style.display = showPanel ? "block" : "none";
+      const divider = devModpackPanel.previousElementSibling;
+      if (divider && divider.classList.contains("dash-divider")) {
+        divider.style.display = showPanel ? "block" : "none";
+      }
     }
 
     if (st.tunnel?.public_ip) {

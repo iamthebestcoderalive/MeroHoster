@@ -439,8 +439,6 @@ function showToast(msg) {
   }, 2500);
 }
 
-init();
-
 // --- Global Downloads Panel Polling ---
 let downloadsPanelVisible = false;
 let globalDownloadsInterval = null;
@@ -641,6 +639,18 @@ function syncPlatformUI() {
   if (!filter) return;
   const currentVal = filter.value;
   filter.innerHTML = "";
+
+  const devModpackPanel = document.getElementById("dev-modpack-panel");
+  const isVanilla = currentPlatform === "vanilla";
+  const isAutoSync = (window.currentManifestSync || "manual") === "automatic";
+  if (devModpackPanel) {
+    const showPanel = !(isVanilla || isAutoSync);
+    devModpackPanel.style.display = showPanel ? "block" : "none";
+    const divider = devModpackPanel.previousElementSibling;
+    if (divider && divider.classList.contains("dash-divider")) {
+      divider.style.display = showPanel ? "block" : "none";
+    }
+  }
 
   if (["paper", "purpur", "spigot", "bukkit"].includes(currentPlatform)) {
     // Plugin servers: show plugins, not mods
@@ -1224,6 +1234,31 @@ function prevTourStep() {
 function endTour() {
   document.getElementById("tour-spotlight").style.display = "none";
   document.getElementById("tour-tooltip").style.display = "none";
-  localStorage.setItem("mero_onboarding_completed", "true");
+    localStorage.setItem("mero_onboarding_completed", "true");
 }
 
+function showCustomConfirm(title, message, onYes) {
+    document.getElementById("custom-confirm-title").innerText = title;
+    document.getElementById("custom-confirm-text").innerHTML = message.replace(/\n/g, '<br>');
+    
+    const modal = document.getElementById("custom-confirm-modal");
+    modal.style.display = "flex";
+    
+    const btnYes = document.getElementById("custom-confirm-yes");
+    const btnNo = document.getElementById("custom-confirm-no");
+    
+    const newBtnYes = btnYes.cloneNode(true);
+    const newBtnNo = btnNo.cloneNode(true);
+    btnYes.parentNode.replaceChild(newBtnYes, btnYes);
+    btnNo.parentNode.replaceChild(newBtnNo, btnNo);
+    
+    newBtnYes.onclick = () => {
+        modal.style.display = "none";
+        if (onYes) onYes();
+    };
+    newBtnNo.onclick = () => {
+        modal.style.display = "none";
+    };
+    
+    lucide.createIcons();
+}

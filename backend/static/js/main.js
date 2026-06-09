@@ -271,3 +271,5 @@ function onServerChange(targetTab = "dashboard") {
   fetchConfig();
   loadManifestUrl();
 }
+
+init();
