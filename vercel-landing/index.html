@@ -22,9 +22,10 @@
             <div class="nav-content">
                 <div class="logo">
                     <img
-                        src="mero_hoster_logo.png"
+                        src="mero_hoster_logo_dark.png"
                         alt="Mero Logo"
                         class="nav-brand-logo"
+                        data-logo-type="hoster"
                     />
                     <span>MeroHoster</span>
                 </div>
@@ -230,9 +231,10 @@
                 <div class="download-grid">
                     <div class="card dl-card">
                         <img
-                            src="mero_hoster_logo.png"
+                            src="mero_hoster_logo_dark.png"
                             alt="MeroHoster Logo"
                             class="brand-logo"
+                            data-logo-type="hoster"
                         />
                         <h3>MeroHoster</h3>
                         <p>
@@ -252,9 +254,10 @@
 
                     <div class="card dl-card">
                         <img
-                            src="mero_client_logo.png"
+                            src="mero_client_logo_dark.png"
                             alt="MeroClient Logo"
                             class="brand-logo"
+                            data-logo-type="client"
                         />
                         <h3>MeroClient</h3>
                         <p>
@@ -280,7 +283,7 @@
         <footer style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 2rem; max-width: 1200px; margin: 4rem auto 0; padding: 4rem 2rem; border-top: 1px solid var(--border); text-align: left;">
             <div>
                 <div style="display: flex; align-items: center; gap: 0.75rem; font-weight: 700; font-size: 1.25rem; margin-bottom: 1rem; color: var(--text-main);">
-                    <img src="mero_hoster_logo.png" width="24" height="24" alt="Logo"> MeroHoster
+                    <img src="mero_hoster_logo_dark.png" width="32" height="32" alt="Logo" data-logo-type="hoster" style="image-rendering: pixelated;"> MeroHoster
                 </div>
                 <p style="color: var(--text-dim); max-width: 300px; font-size: 0.95rem; line-height: 1.6;">
                     The most transparent way to host Minecraft directly from your PC with zero latency.
@@ -314,6 +317,19 @@
 
         <script>
             lucide.createIcons();
+
+            // Logo theme switching
+            function updateLogos(isLight) {
+                const suffix = isLight ? 'light' : 'dark';
+                document.querySelectorAll('[data-logo-type]').forEach(img => {
+                    const type = img.dataset.logoType;
+                    if (type === 'hoster') {
+                        img.src = `mero_hoster_logo_${suffix}.png`;
+                    } else if (type === 'client') {
+                        img.src = `mero_client_logo_${suffix}.png`;
+                    }
+                });
+            }
             
             // Premium Theme Toggle Logic
             const themeToggle = document.getElementById('themeToggle');
@@ -322,15 +338,14 @@
             const currentTheme = localStorage.getItem('theme');
             if (currentTheme === 'light') {
                 document.body.classList.add('light-mode');
+                updateLogos(true);
             }
 
             themeToggle.addEventListener('click', () => {
                 document.body.classList.toggle('light-mode');
-                if (document.body.classList.contains('light-mode')) {
-                    localStorage.setItem('theme', 'light');
-                } else {
-                    localStorage.setItem('theme', 'dark');
-                }
+                const isLight = document.body.classList.contains('light-mode');
+                localStorage.setItem('theme', isLight ? 'light' : 'dark');
+                updateLogos(isLight);
             });
         </script>
     </body>

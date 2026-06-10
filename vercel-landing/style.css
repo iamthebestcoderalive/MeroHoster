@@ -125,7 +125,7 @@ body:not(.light-mode) .card:hover::after {
     letter-spacing: -0.02em;
     color: var(--text-main);
 }
-.nav-brand-logo { width: 24px; height: 24px; }
+.nav-brand-logo { width: 32px; height: 32px; image-rendering: pixelated; }
 
 .nav-links {
     display: flex;
@@ -404,7 +404,7 @@ body:not(.light-mode) .feature-hero {
 .dl-card {
     display: flex; flex-direction: column; height: 100%;
 }
-.brand-logo { width: 48px; height: 48px; margin-bottom: 1.5rem; border-radius: 10px; border: 1px solid var(--border); }
+.brand-logo { width: 64px; height: 64px; margin-bottom: 1.5rem; border-radius: 10px; border: 1px solid var(--border); image-rendering: pixelated; }
 .dl-card h3 { font-size: 1.5rem; margin-bottom: 0.75rem; font-weight: 600; letter-spacing: -0.02em; }
 .dl-card p { color: var(--text-dim); margin-bottom: 2rem; flex: 1; font-size: 0.95rem; }
 .req-list {
