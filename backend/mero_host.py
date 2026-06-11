@@ -3267,27 +3267,68 @@ async def resolve_and_download(
         loaders = '["fabric"]'
 
     url = f'https://api.modrinth.com/v2/project/{req.project_id}/version?game_versions=["{meta["version"]}"]'
-    if loaders and req.project_type not in ("resourcepack", "shader"):
-        import urllib.parse
-        url += f'&loaders={urllib.parse.quote(loaders)}'
 
-    # get compatible version
+    # get all compatible versions
     r = await c.get(url)
     data = r.json()
     if not data:
         return  # no compatible version
 
-    v = data[0]
+    # SMART VERSION SELECTION
+    v = None
+    server_loader_list = []
+    if loaders:
+        import json
+        try:
+            server_loader_list = json.loads(loaders)
+        except:
+            pass
+
+    if req.project_type == "datapack":
+        # Look for a version that specifically supports datapacks
+        for ver in data:
+            if "datapack" in ver.get("loaders", []):
+                v = ver
+                break
+    elif req.project_type in ("mod", "modpack", "plugin"):
+        if server_loader_list:
+            for ver in data:
+                if any(l in ver.get("loaders", []) for l in server_loader_list):
+                    v = ver
+                    break
+        # Fallback: if user installed a "mod" but it only has "datapack" loader
+        if not v:
+            for ver in data:
+                if "datapack" in ver.get("loaders", []):
+                    v = ver
+                    req.project_type = "datapack" # Change type so it goes to the datapacks folder
+                    break
+    
+    # Ultimate fallback
+    if not v:
+        v = data[0]
     fi = v["files"][0]
 
     is_plugin_server = server_type in ("paper", "spigot", "purpur", "bukkit")
     mod_folder = "plugins" if is_plugin_server else "mods"
 
-    folder = {
-        "mod": mod_folder,
-        "resourcepack": "resourcepacks",
-        "shader": "shaderpacks",
-    }.get(req.project_type, mod_folder)
+    if req.project_type == "datapack":
+        world_name = "world"
+        props_path = os.path.join(sdir(name), "server.properties")
+        if os.path.exists(props_path):
+            with open(props_path, "r", encoding="utf-8") as f:
+                for line in f:
+                    if line.startswith("level-name="):
+                        world_name = line.split("=", 1)[1].strip()
+                        break
+        folder = f"{world_name}/datapacks"
+    else:
+        folder = {
+            "mod": mod_folder,
+            "resourcepack": "resourcepacks",
+            "shader": "shaderpacks",
+        }.get(req.project_type, mod_folder)
+        
     os.makedirs(os.path.join(sdir(name), folder), exist_ok=True)
     dest = os.path.join(sdir(name), folder, fi["filename"])
 
@@ -3407,7 +3448,16 @@ def get_installed_mods(name: str):
 
     tracked = meta.get("installed_files", [])
 
-    for d in ["mods", "plugins", "resourcepacks", "shaderpacks"]:
+    world_name = "world"
+    props_path = os.path.join(sdir(name), "server.properties")
+    if os.path.exists(props_path):
+        with open(props_path, "r", encoding="utf-8") as f:
+            for line in f:
+                if line.startswith("level-name="):
+                    world_name = line.split("=", 1)[1].strip()
+                    break
+
+    for d in ["mods", "plugins", "resourcepacks", "shaderpacks", f"{world_name}/datapacks"]:
         folder = os.path.join(sdir(name), d)
         if os.path.isdir(folder):
             for f in os.listdir(folder):
@@ -3455,13 +3505,35 @@ async def scan_jars_bg(name: str):
     tracked = meta.setdefault("installed_files", [])
     changed = False
     
-    for d in ["mods", "plugins"]:
+    world_name = "world"
+    props_path = os.path.join(sp, "server.properties")
+    if os.path.exists(props_path):
+        with open(props_path, "r", encoding="utf-8") as f:
+            for line in f:
+                if line.startswith("level-name="):
+                    world_name = line.split("=", 1)[1].strip()
+                    break
+
+    # Cleanup deleted files from tracker
+    existing_files = set()
+    for d in ["mods", "plugins", "resourcepacks", "shaderpacks", f"{world_name}/datapacks"]:
+        folder = os.path.join(sp, d)
+        if os.path.isdir(folder):
+            for f in os.listdir(folder):
+                existing_files.add(f)
+                
+    original_len = len(tracked)
+    tracked[:] = [m for m in tracked if m.get("filename") in existing_files]
+    if len(tracked) != original_len:
+        changed = True
+        
+    for d in ["mods", "plugins", "resourcepacks", "shaderpacks", f"{world_name}/datapacks"]:
         folder = os.path.join(sp, d)
         if not os.path.isdir(folder):
             continue
             
         for f in os.listdir(folder):
-            if not f.endswith(".jar"):
+            if not (f.endswith(".jar") or f.endswith(".zip")):
                 continue
                 
             cache_key = f"{name}:{f}"
@@ -3496,7 +3568,7 @@ async def scan_jars_bg(name: str):
                                 tracked.append({
                                     "project_id": project_id,
                                     "filename": f,
-                                    "type": "mod" if d == "mods" else "plugin",
+                                    "type": "datapack" if "datapacks" in d else ("resourcepack" if d == "resourcepacks" else ("shader" if d == "shaderpacks" else ("plugin" if d == "plugins" else "mod"))),
                                     "title": title,
                                     "icon_url": icon_url
                                 })

@@ -42,48 +42,70 @@
                                     oninput="filterFiles()"
                                 />
                             </div>
-                            <div class="fm-actions">
-                                <button
-                                    class="btn outline small"
-                                    id="fm-upload-btn"
-                                >
-                                    <i
-                                        data-lucide="upload"
-                                        style="width: 14px; height: 14px"
-                                    ></i>
-                                    Upload
-                                </button>
-                                <button
-                                    class="btn outline small"
-                                    onclick="createFolder()"
-                                >
-                                    <i
-                                        data-lucide="folder-plus"
-                                        style="width: 14px; height: 14px"
-                                    ></i>
-                                    New Folder
-                                </button>
-                                <button
-                                    class="btn outline small"
-                                    onclick="fetchFiles()"
-                                >
-                                    <i
-                                        data-lucide="rotate-cw"
-                                        style="width: 14px; height: 14px"
-                                    ></i>
-                                    Refresh
-                                </button>
-                                <button
-                                    class="btn danger outline small"
-                                    onclick="deleteSelected()"
-                                >
-                                    <i
-                                        data-lucide="trash-2"
-                                        style="width: 14px; height: 14px"
-                                    ></i>
-                                    Delete Selected
-                                </button>
-                            </div>
+                        <style>
+                            .fm-actions .btn {
+                                display: inline-flex;
+                                align-items: center;
+                                justify-content: center;
+                                gap: 6px;
+                                padding: 6px 12px;
+                                font-size: 0.85rem;
+                                white-space: nowrap;
+                                flex-shrink: 0;
+                            }
+                        </style>
+                        <div class="fm-actions">
+                            <button
+                                class="btn outline small"
+                                onclick="openServerFolder(event)"
+                            >
+                                <i
+                                    data-lucide="folder-open"
+                                    style="width: 14px; height: 14px"
+                                ></i>
+                                Open Folder
+                            </button>
+                            <button
+                                class="btn outline small"
+                                id="fm-upload-btn"
+                            >
+                                <i
+                                    data-lucide="upload"
+                                    style="width: 14px; height: 14px"
+                                ></i>
+                                Upload
+                            </button>
+                            <button
+                                class="btn outline small"
+                                onclick="createFolder()"
+                            >
+                                <i
+                                    data-lucide="folder-plus"
+                                    style="width: 14px; height: 14px"
+                                ></i>
+                                New Folder
+                            </button>
+                            <button
+                                class="btn outline small"
+                                onclick="fetchFiles()"
+                            >
+                                <i
+                                    data-lucide="rotate-cw"
+                                    style="width: 14px; height: 14px"
+                                ></i>
+                                Refresh
+                            </button>
+                            <button
+                                class="btn danger outline small"
+                                onclick="deleteSelected()"
+                            >
+                                <i
+                                    data-lucide="trash-2"
+                                    style="width: 14px; height: 14px"
+                                ></i>
+                                Delete Selected
+                            </button>
+                        </div>
                         </div>
 
                         <div

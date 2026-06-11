@@ -199,8 +199,7 @@ async function fetchStats() {
       Math.min((st.memory / (ramGB * 1024 ** 3)) * 100, 100) + "%";
 
     document.getElementById("stat-disk").innerText = fmtBytes(st.disk);
-    document.getElementById("stat-disk-sub").innerHTML =
-      `<a href="#" onclick="openServerFolder(event)" style="color:var(--text); text-decoration:underline;">Open folder</a>`;
+    document.getElementById("stat-disk-sub").innerText = "Unlimited";
 
     // Plain text server name — MC color codes stripped, NEVER rendered
     const plainName = (st.display_name || currentServer).replace(

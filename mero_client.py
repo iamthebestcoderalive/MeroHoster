@@ -92,12 +92,15 @@ def _patched_init(self, *args, **kwargs):
 requests.Session.__init__ = _patched_init
 
 # --- Color Palette ---
-DARKER_CHARCOAL = "#1A1A1A"
-CHARCOAL = "#2B2B2B"
-NEON_GREEN = "#39FF14"
-ACCENT_BLUE = "#1E90FF"
+DARKER_CHARCOAL = "#0D0B14" # Dark purple-black
+CHARCOAL = "#1A1625" # Deep purple-grey
+THEME_PRIMARY = "#9D00FF" # Vibrant Purple
+THEME_SECONDARY = "#00E5FF" # Vibrant Cyan/Blue
 TEXT_COLOR = "#E0E0E0"
 ERROR_RED = "#FF3131"
+
+CLIENT_LOGO_B64 = b"iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAC5klEQVR4nO1WP2gTURj/ctyQ6KmIGRwMXZIOUiXFJVCXwHUQ1MFJCg4xoKumOGaQukmqawvqUJDOVXAw4KL0FmmG4pDUIURwyaQJLVhy8nuX7/L68u5PY8XB/uC4d++97/t+35/3vSM6xj9GImjBdV1XK5BIBMr8iVwsJX9jzdRtBNuV1q77vtOjbzs7Yn77e5dqC7bwhPcEyb360KBSMU/N2TqtPKJQOTOOccbi6zphTVWmM443LaepVswHymkjwJi66dD8lu0pIs8LHQnMsXFjyaEyEQ2Kng6fSAhMnfcI3fTQOCvZvdOg9bsjwRc08gTjfdrz5q8miSS58kfMW/QwIAoJHQF8szAUqp5wPZi5pPjeb+35ZFkWe559tTxCksz9XOoAAVMNCbwXWE6LlyBBDbp2eUp8/7A/izVhsDUyKHt8uwmjaaJpLypYQ+pCUyCjvVGgUsYShhlnHrTF+1bNJqqMUqQaGFRtSkFxLkk/yaFS1SPGNRQId1hQzwub7qL1xi2sbrpIB7/lvVjHw+vWY28s78MYtcH7sAe6ZVvAWARSa3mi2brvlZw3rCN3td4N/6gCvEdWjn0wjjEigHroaxw3dTWQmfFyDKD6GbqjR5n8GEHZQzmdZZwUJ4JAZiZNne0uzVWISls2NZ8eLB61+ahjGaiTdqfnF2n/5XhPMDRR8YWRAhDSgT0NMs7RvHTilzgZiKRIbxSB1FqeLvau+8dRJySTiLrlcHoG1QKdHB7JSALGkiMayyf08QV71BcmxCmnIHSiIcn1FEiAMVfpRvbxOPhivQ1dN9QJhItPAtfCpGDZftNr5yjuSAIMXDwQ0oXtsEAdBbViI0iIezuIqNdvGNRbFQhrxYZuEs1DJRKHhGr8dP2KnwZEQJdOgwesHF1tPmMR2ixuQCi6kM3SJDh/7qx/NT95lx67ioXdIC+4jzPre9lk7L9i9ccG0BkPVRJn7ijkE3GVHOq//gjkj/H/4Dfn+VEJVWM0ZwAAAABJRU5ErkJggg=="
+
 
 
 # --- Tunnel Logic (Preserved) ---
@@ -346,11 +349,11 @@ class MeroWizard(ctk.CTk):
             self.main_container,
             text="⚙ CLIENT SETTINGS",
             font=get_font("heading", 24, "bold"),
-            text_color=NEON_GREEN,
+            text_color=THEME_PRIMARY,
         ).pack(pady=(10, 40))
 
         frame = ctk.CTkFrame(
-            self.main_container, fg_color=CHARCOAL, border_color=NEON_GREEN, border_width=1
+            self.main_container, fg_color=CHARCOAL, border_color=THEME_PRIMARY, border_width=1
         )
         frame.pack(fill="x", padx=40, pady=10)
 
@@ -363,8 +366,8 @@ class MeroWizard(ctk.CTk):
             row,
             text="Enable Sandbox Mode",
             variable=sandbox_var,
-            border_color=NEON_GREEN,
-            checkmark_color=NEON_GREEN,
+            border_color=THEME_PRIMARY,
+            checkmark_color=THEME_PRIMARY,
             font=get_font("body", 14),
             command=lambda: setattr(self, 'sandbox_mode', sandbox_var.get())
         )
@@ -378,7 +381,7 @@ class MeroWizard(ctk.CTk):
             text="[ i ]",
             width=30,
             fg_color="transparent",
-            text_color=NEON_GREEN,
+            text_color=THEME_PRIMARY,
             hover_color="#555555",
             command=show_info
         )
@@ -393,8 +396,8 @@ class MeroWizard(ctk.CTk):
             row2,
             text="Enable Developer Mode",
             variable=dev_var,
-            border_color=NEON_GREEN,
-            checkmark_color=NEON_GREEN,
+            border_color=THEME_PRIMARY,
+            checkmark_color=THEME_PRIMARY,
             font=get_font("body", 14),
             command=lambda: setattr(self, 'developer_mode', dev_var.get())
         )
@@ -408,7 +411,7 @@ class MeroWizard(ctk.CTk):
             text="[ i ]",
             width=30,
             fg_color="transparent",
-            text_color=NEON_GREEN,
+            text_color=THEME_PRIMARY,
             hover_color="#555555",
             command=show_dev_info
         )
@@ -427,7 +430,7 @@ class MeroWizard(ctk.CTk):
             width=100,
             height=40,
             fg_color="transparent",
-            border_color=NEON_GREEN,
+            border_color=THEME_PRIMARY,
             border_width=1,
             text_color=TEXT_COLOR,
             hover_color=CHARCOAL,
@@ -462,12 +465,24 @@ class MeroWizard(ctk.CTk):
         top_frame = ctk.CTkFrame(self.main_container, fg_color="transparent")
         top_frame.pack(fill="x", pady=(0, 20))
 
-        # Title
+        # Logo + Title
+        title_container = ctk.CTkFrame(top_frame, fg_color="transparent")
+        title_container.pack(side="left")
+
+        try:
+            import io
+            from PIL import Image
+            logo_img = Image.open(io.BytesIO(base64.b64decode(CLIENT_LOGO_B64)))
+            self.ctk_logo = ctk.CTkImage(light_image=logo_img, dark_image=logo_img, size=(32, 32))
+            ctk.CTkLabel(title_container, image=self.ctk_logo, text="").pack(side="left", padx=(0, 10))
+        except Exception as e:
+            print("Failed to load embedded logo:", e)
+
         ctk.CTkLabel(
-            top_frame,
+            title_container,
             text="MERO SERVERS",
             font=get_font("heading", 24, "bold"),
-            text_color=NEON_GREEN,
+            text_color=THEME_PRIMARY,
         ).pack(side="left")
 
         # Top Bar Buttons
@@ -496,9 +511,9 @@ class MeroWizard(ctk.CTk):
             btn_frame,
             text="+ Add Server",
             width=100,
-            fg_color=NEON_GREEN,
+            fg_color=THEME_PRIMARY,
             text_color="black",
-            hover_color="#2ECC71",
+            hover_color="#00B8CC",
             command=lambda: self.show_state_0_auth(),
         ).pack(side="left", padx=5)
 
@@ -526,7 +541,7 @@ class MeroWizard(ctk.CTk):
         card = ctk.CTkFrame(
             self.list_frame,
             fg_color=CHARCOAL,
-            border_color=NEON_GREEN,
+            border_color=THEME_PRIMARY,
             border_width=2,
             corner_radius=10,
             cursor="hand2",
@@ -550,9 +565,9 @@ class MeroWizard(ctk.CTk):
             width=50,
             height=24,
             fg_color="transparent",
-            border_color=NEON_GREEN,
+            border_color=THEME_PRIMARY,
             border_width=1,
-            text_color=NEON_GREEN,
+            text_color=THEME_PRIMARY,
             hover_color=CHARCOAL,
             command=lambda s=server_info: self.show_state_edit(s)
         )
@@ -587,7 +602,7 @@ class MeroWizard(ctk.CTk):
                 bottom_row,
                 text=path_str,
                 font=get_font("body", 11, "underline"),
-                text_color=NEON_GREEN,
+                text_color=THEME_PRIMARY,
                 cursor="hand2",
             )
             path_lbl.pack(side="left", padx=(10, 0))
@@ -686,7 +701,7 @@ class MeroWizard(ctk.CTk):
             self.main_container,
             text="EDIT SERVER",
             font=get_font("heading", 24, "bold"),
-            text_color=NEON_GREEN,
+            text_color=THEME_PRIMARY,
         ).pack(pady=(40, 20))
 
         code_frame = ctk.CTkFrame(self.main_container, fg_color="transparent")
@@ -696,7 +711,7 @@ class MeroWizard(ctk.CTk):
             code_frame,
             height=40,
             fg_color=CHARCOAL,
-            border_color=NEON_GREEN,
+            border_color=THEME_PRIMARY,
             text_color=TEXT_COLOR,
             placeholder_text="Enter new Invite Code (optional)",
         )
@@ -710,7 +725,7 @@ class MeroWizard(ctk.CTk):
             path_frame,
             height=40,
             fg_color=CHARCOAL,
-            border_color=NEON_GREEN,
+            border_color=THEME_PRIMARY,
             text_color=TEXT_COLOR,
         )
         path_entry.pack(side="left", expand=True, fill="x", padx=(0, 10))
@@ -728,7 +743,7 @@ class MeroWizard(ctk.CTk):
             width=100,
             height=40,
             fg_color=CHARCOAL,
-            border_color=NEON_GREEN,
+            border_color=THEME_PRIMARY,
             border_width=1,
             command=do_browse,
         )
@@ -826,10 +841,10 @@ class MeroWizard(ctk.CTk):
             text="SAVE",
             width=150,
             height=40,
-            fg_color=NEON_GREEN,
+            fg_color=THEME_PRIMARY,
             text_color="black",
             font=get_font("heading", 13, "bold"),
-            hover_color="#2ECC71",
+            hover_color="#00B8CC",
             command=do_save,
         ).pack(side="left", padx=10)
 
@@ -979,7 +994,7 @@ class MeroWizard(ctk.CTk):
             self.main_container,
             text=title,
             font=get_font("heading", 28, "bold"),
-            text_color=NEON_GREEN,
+            text_color=THEME_PRIMARY,
         ).pack(pady=(10, 30))
 
         self.invite_entry = ctk.CTkEntry(
@@ -988,7 +1003,7 @@ class MeroWizard(ctk.CTk):
             width=400,
             height=45,
             fg_color=CHARCOAL,
-            border_color=NEON_GREEN,
+            border_color=THEME_PRIMARY,
             text_color=TEXT_COLOR,
         )
         # Don't auto-fill if updating, because they need to enter the NEW code
@@ -1009,9 +1024,9 @@ class MeroWizard(ctk.CTk):
             width=400,
             height=50,
             font=get_font("heading", 14, "bold"),
-            fg_color=NEON_GREEN,
+            fg_color=THEME_PRIMARY,
             text_color="black",
-            hover_color="#2ECC71",
+            hover_color="#00B8CC",
             command=self.validate_uplink,
         ).pack(pady=20)
 
@@ -1115,7 +1130,7 @@ class MeroWizard(ctk.CTk):
         brief_frame = ctk.CTkFrame(
             self.main_container,
             fg_color=CHARCOAL,
-            border_color=NEON_GREEN,
+            border_color=THEME_PRIMARY,
             border_width=1,
         )
         brief_frame.pack(fill="x", pady=(0, 20))
@@ -1131,7 +1146,7 @@ class MeroWizard(ctk.CTk):
             brief_frame,
             text=header_text,
             font=get_font("body", 12, "bold"),
-            text_color=NEON_GREEN,
+            text_color=THEME_PRIMARY,
         ).pack(pady=10)
 
         # 2. Potato Mode Toggles
@@ -1145,15 +1160,15 @@ class MeroWizard(ctk.CTk):
             toggle_frame,
             text="Sync Resourcepacks",
             variable=self.sync_rp_var,
-            border_color=NEON_GREEN,
-            checkmark_color=NEON_GREEN,
+            border_color=THEME_PRIMARY,
+            checkmark_color=THEME_PRIMARY,
         ).pack(side="left", padx=20)
         ctk.CTkCheckBox(
             toggle_frame,
             text="Sync Shaders",
             variable=self.sync_sp_var,
-            border_color=NEON_GREEN,
-            checkmark_color=NEON_GREEN,
+            border_color=THEME_PRIMARY,
+            checkmark_color=THEME_PRIMARY,
         ).pack(side="left", padx=20)
 
         # 3. Interactive To-Do List
@@ -1177,7 +1192,7 @@ class MeroWizard(ctk.CTk):
                 anchor="w",
                 fg_color="transparent",
                 hover_color=CHARCOAL,
-                text_color=NEON_GREEN if is_step_1 else TEXT_COLOR,
+                text_color=THEME_PRIMARY if is_step_1 else TEXT_COLOR,
                 font=get_font("body", 12, "bold" if is_step_1 else "normal"),
             )
             btn.configure(command=lambda b=btn: self.toggle_step(b))
@@ -1192,7 +1207,7 @@ class MeroWizard(ctk.CTk):
                 text="View Manifest",
                 width=120,
                 fg_color=CHARCOAL,
-                border_color=NEON_GREEN,
+                border_color=THEME_PRIMARY,
                 border_width=1,
                 hover_color="#555555",
                 command=self.show_dev_manifest
@@ -1214,7 +1229,7 @@ class MeroWizard(ctk.CTk):
                 text=diff_text,
                 width=160,
                 fg_color=CHARCOAL,
-                border_color=NEON_GREEN,
+                border_color=THEME_PRIMARY,
                 border_width=1,
                 hover_color="#555555",
                 command=lambda: self.show_dev_changes(old_m, self.manifest)
@@ -1239,7 +1254,7 @@ class MeroWizard(ctk.CTk):
             path_frame,
             height=40,
             fg_color=CHARCOAL,
-            border_color=NEON_GREEN,
+            border_color=THEME_PRIMARY,
             text_color=TEXT_COLOR,
             placeholder_text="Instance Path...",
         )
@@ -1252,7 +1267,7 @@ class MeroWizard(ctk.CTk):
             width=100,
             height=40,
             fg_color=CHARCOAL,
-            border_color=NEON_GREEN,
+            border_color=THEME_PRIMARY,
             border_width=1,
             command=self.browse_instance_path,
         )
@@ -1274,7 +1289,7 @@ class MeroWizard(ctk.CTk):
     def validate_path(self):
         path = self.path_entry.get().strip()
         if path and os.path.exists(path):
-            self.sync_btn.configure(state="normal", fg_color=NEON_GREEN)
+            self.sync_btn.configure(state="normal", fg_color=THEME_PRIMARY)
         else:
             self.sync_btn.configure(state="disabled", fg_color="gray")
 
@@ -1369,13 +1384,13 @@ class MeroWizard(ctk.CTk):
             self.main_container,
             text="UPLINK IN PROGRESS",
             font=get_font("heading", 22, "bold"),
-            text_color=NEON_GREEN,
+            text_color=THEME_PRIMARY,
         ).pack(pady=(10, 40))
         self.exec_progress = ctk.CTkProgressBar(
             self.main_container,
             width=450,
             height=15,
-            progress_color=NEON_GREEN,
+            progress_color=THEME_PRIMARY,
             fg_color=CHARCOAL,
         )
         self.exec_progress.pack(pady=10)
@@ -1697,13 +1712,13 @@ class MeroWizard(ctk.CTk):
             self.main_container,
             text="✅ UPLINK COMPLETE",
             font=get_font("heading", 32, "bold"),
-            text_color=NEON_GREEN,
+            text_color=THEME_PRIMARY,
         ).pack(pady=(20, 20))
         port = self.current_tunnel.local_tcp_port
         info_frame = ctk.CTkFrame(
             self.main_container,
             fg_color=CHARCOAL,
-            border_color=NEON_GREEN,
+            border_color=THEME_PRIMARY,
             border_width=1,
         )
         info_frame.pack(fill="x", pady=20, padx=20)
@@ -1716,7 +1731,7 @@ class MeroWizard(ctk.CTk):
             info_frame,
             text=target_ip,
             font=get_font("body", 24, "bold"),
-            text_color=NEON_GREEN,
+            text_color=THEME_PRIMARY,
             cursor="hand2"
         )
         ip_label.pack(pady=(0, 10))
@@ -1728,10 +1743,10 @@ class MeroWizard(ctk.CTk):
                 self.update()
                 
                 # Show quick visual feedback
-                ip_label.configure(text="COPIED!", text_color=NEON_GREEN)
+                ip_label.configure(text="COPIED!", text_color=THEME_PRIMARY)
                 def reset_lbl():
                     try:
-                        ip_label.configure(text=target_ip, text_color=NEON_GREEN)
+                        ip_label.configure(text=target_ip, text_color=THEME_PRIMARY)
                     except:
                         pass
                 self.after(1000, reset_lbl)
@@ -1955,7 +1970,7 @@ class MeroWizard(ctk.CTk):
         top.geometry("700x500")
         top.configure(fg_color=DARKER_CHARCOAL)
         
-        ctk.CTkLabel(top, text="STRUCTURED MANIFEST VIEWER", font=get_font("heading", 20, "bold"), text_color=NEON_GREEN).pack(pady=10)
+        ctk.CTkLabel(top, text="STRUCTURED MANIFEST VIEWER", font=get_font("heading", 20, "bold"), text_color=THEME_PRIMARY).pack(pady=10)
         
         sf = ctk.CTkScrollableFrame(top, fg_color="transparent")
         sf.pack(fill="both", expand=True, padx=20, pady=10)
@@ -1970,7 +1985,7 @@ class MeroWizard(ctk.CTk):
                     
                     frame = ctk.CTkFrame(sf, fg_color=CHARCOAL)
                     frame.pack(fill="x", pady=2)
-                    ctk.CTkLabel(frame, text=fn, font=get_font("body", 12, "bold"), text_color=NEON_GREEN).pack(side="left", padx=10)
+                    ctk.CTkLabel(frame, text=fn, font=get_font("body", 12, "bold"), text_color=THEME_PRIMARY).pack(side="left", padx=10)
                     
                     url_entry = ctk.CTkEntry(frame, height=24, fg_color="black", text_color="gray", border_width=0)
                     url_entry.pack(side="right", fill="x", expand=True, padx=10, pady=5)
@@ -1986,7 +2001,7 @@ class MeroWizard(ctk.CTk):
         header = ctk.CTkFrame(top, fg_color="transparent")
         header.pack(fill="x", padx=20, pady=10)
         
-        ctk.CTkLabel(header, text="SERVER CHANGES", font=get_font("heading", 20, "bold"), text_color=NEON_GREEN).pack(side="left")
+        ctk.CTkLabel(header, text="SERVER CHANGES", font=get_font("heading", 20, "bold"), text_color=THEME_PRIMARY).pack(side="left")
         
         def copy_changelog():
             cl = "### Server Update Changelog\n"
@@ -2029,10 +2044,10 @@ class MeroWizard(ctk.CTk):
             top.clipboard_append(cl)
             messagebox.showinfo("Copied", "Changelog copied to clipboard!")
             
-        ctk.CTkButton(header, text="Copy Changelog", fg_color=NEON_GREEN, text_color="black", hover_color="#2ECC71", command=copy_changelog).pack(side="right")
+        ctk.CTkButton(header, text="Copy Changelog", fg_color=THEME_PRIMARY, text_color="black", hover_color="#00B8CC", command=copy_changelog).pack(side="right")
         
         search_var = ctk.StringVar()
-        search_entry = ctk.CTkEntry(header, placeholder_text="Search mods...", textvariable=search_var, width=200, fg_color=CHARCOAL, border_color=NEON_GREEN)
+        search_entry = ctk.CTkEntry(header, placeholder_text="Search mods...", textvariable=search_var, width=200, fg_color=CHARCOAL, border_color=THEME_PRIMARY)
         search_entry.pack(side="right", padx=10)
         
         # Diff Logic computation
@@ -2080,7 +2095,7 @@ class MeroWizard(ctk.CTk):
         right_panel.pack(side="right", fill="both", expand=True, padx=(10, 0))
         
         ctk.CTkLabel(left_panel, text="Removed Mods", font=get_font("heading", 16, "bold"), text_color=ERROR_RED).pack(pady=5)
-        ctk.CTkLabel(right_panel, text="Added Mods", font=get_font("heading", 16, "bold"), text_color=NEON_GREEN).pack(pady=5)
+        ctk.CTkLabel(right_panel, text="Added Mods", font=get_font("heading", 16, "bold"), text_color=THEME_PRIMARY).pack(pady=5)
         
         left_inner = ctk.CTkFrame(left_panel, fg_color="transparent")
         left_inner.pack(fill="both", expand=True)
@@ -2107,7 +2122,7 @@ class MeroWizard(ctk.CTk):
             # Added
             for a in exact_added:
                 if q in a.lower():
-                    ctk.CTkLabel(right_inner, text=f"+ {a}", text_color=NEON_GREEN, font=get_font("body", 12)).pack(anchor="w")
+                    ctk.CTkLabel(right_inner, text=f"+ {a}", text_color=THEME_PRIMARY, font=get_font("body", 12)).pack(anchor="w")
 
         search_var.trace("w", render_diff)
         render_diff()

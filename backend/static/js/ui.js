@@ -22,6 +22,7 @@ function switchTab(tabId) {
   if (tabId === "players" && currentServer) loadPlayers();
   if (tabId === "modrinth") {
     syncPlatformUI();
+    fetchInstalledMods();
     searchModrinth();
   }
   if (tabId === "backups" && currentServer) {
@@ -662,6 +663,7 @@ function syncPlatformUI() {
   }
   filter.innerHTML += '<option value="resourcepack">Resource Packs</option>';
   filter.innerHTML += '<option value="shader">Shaders</option>';
+  filter.innerHTML += '<option value="datapack">Datapacks</option>';
 
   if (Array.from(filter.options).some((o) => o.value === currentVal)) {
     filter.value = currentVal;

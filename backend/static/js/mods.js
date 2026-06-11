@@ -56,6 +56,8 @@ function filterInstalledMods() {
         return false;
       if (typeFilter === "shader" && !f.path.startsWith("shaderpacks/"))
         return false;
+      if (typeFilter === "datapack" && !f.path.includes("/datapacks/"))
+        return false;
     }
     return true;
   });
