@@ -1,0 +1,34 @@
+# Python Cache & Environments
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+
+# Build & Deployment Folders
+build/
+dist/
+*.spec
+
+# MeroHoster Specific (Logs, Cache, Keys, Servers)
+backend/.webview_storage/
+backend/debug.log
+backend/manifest_cache.json
+backend/pinggy_key
+backend/pinggy_key.pub
+backend/playit.exe
+backend/servers/
+backend/java/
+
+# AI Temporary Files
+scratch/
+
+# IDEs & Editor Files
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# Custom Testing Environments
+mero-logo/
