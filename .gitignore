@@ -29,3 +29,6 @@ scratch/
 .idea/
 *.swp
 .DS_Store
+
+# Custom Testing Environments
+Mero Logo/
